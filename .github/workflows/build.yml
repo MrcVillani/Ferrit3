@@ -1,0 +1,136 @@
+name: Build Ferrite
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  # Indirizzo del sito: GitHub Pages del repo, oppure la variabile SITE_URL se la imposti (es. un dominio tuo).
+  SITE_URL: ${{ vars.SITE_URL || format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}
+
+jobs:
+  site:
+    name: Sito (GitHub Pages)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./build-web.sh
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./web
+          publish_branch: gh-pages
+          enable_jekyll: false
+          force_orphan: true
+
+  android:
+    name: APK Android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Recupera la chiave di firma
+        uses: actions/cache@v4
+        with:
+          path: android/keystore-cache
+          key: ferrite-keystore-v1
+      - name: Prepara la chiave di firma
+        env:
+          KS_B64: ${{ secrets.FERRITE_KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.FERRITE_KS_PASS }}
+        run: |
+          set -e
+          cd android
+          if [ -n "$KS_B64" ] && [ -n "$KS_PASS" ]; then
+            echo "Chiave dai secret del repo"
+            echo "$KS_B64" | base64 -d > ferrite.keystore
+            P="$KS_PASS"
+          elif [ -f keystore-cache/ferrite.keystore ]; then
+            echo "Chiave dalla cache"
+            cp keystore-cache/ferrite.keystore ferrite.keystore
+            P="$(cat keystore-cache/pass)"
+          else
+            echo "Nuova chiave (verrà riusata dalle build successive)"
+            mkdir -p keystore-cache
+            P="$(openssl rand -hex 16)"
+            keytool -genkeypair -keystore keystore-cache/ferrite.keystore -alias ferrite -keyalg RSA -keysize 2048 \
+              -validity 10000 -storepass "$P" -keypass "$P" -dname "CN=Ferrite Player, O=Ferrite, C=IT"
+            printf '%s' "$P" > keystore-cache/pass
+            cp keystore-cache/ferrite.keystore ferrite.keystore
+          fi
+          echo "::add-mask::$P"
+          echo "FERRITE_KS_PASS=$P" >> "$GITHUB_ENV"
+      - name: Compila APK
+        working-directory: android
+        run: gradle assembleRelease --stacktrace -PsiteUrl="$SITE_URL" -PversionCode="${{ github.run_number }}"
+      - name: Rinomina
+        run: cp android/app/build/outputs/apk/release/app-release.apk "Ferrite-${{ github.run_number }}.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Ferrite-android
+          path: Ferrite-${{ github.run_number }}.apk
+
+  desktop:
+    name: Desktop ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Installa
+        working-directory: desktop
+        run: npm install
+      - name: Compila
+        working-directory: desktop
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Ferrite-${{ runner.os }}
+          path: |
+            desktop/dist/*.exe
+            desktop/dist/*.AppImage
+            desktop/dist/*.dmg
+          if-no-files-found: error
+
+  release:
+    name: Release
+    needs: [android, desktop]
+    if: ${{ !cancelled() && needs.android.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - run: ls -la dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Ferrite build ${{ github.run_number }}
+          make_latest: 'true'
+          body: |
+            **Android**: scarica `Ferrite-${{ github.run_number }}.apk` dal telefono e installalo.
+            **Windows**: `Ferrite Setup ….exe` (installer) oppure `Ferrite-…-portable.exe`.
+            **Linux**: `.AppImage` · **macOS**: `.dmg` (primo avvio: tasto destro → Apri).
+
+            Sito: ${{ env.SITE_URL }}
+          files: dist/*

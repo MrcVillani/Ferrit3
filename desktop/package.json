@@ -1,0 +1,28 @@
+{
+  "name": "ferrite-player",
+  "productName": "Ferrite",
+  "version": "1.0.0",
+  "description": "Player retrò a finestre che comanda Spotify",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "prepare-web": "node -e \"require('fs').cpSync('../web','app',{recursive:true})\"",
+    "start": "npm run prepare-web && electron .",
+    "dist": "npm run prepare-web && electron-builder --publish never"
+  },
+  "devDependencies": {
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "it.ferrite.player",
+    "productName": "Ferrite",
+    "files": ["main.js", "preload.js", "app/**/*"],
+    "directories": { "output": "dist" },
+    "win": { "target": ["nsis", "portable"], "icon": "build/icon.png" },
+    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true },
+    "portable": { "artifactName": "Ferrite-${version}-portable.exe" },
+    "mac": { "target": "dmg", "icon": "build/icon.png", "category": "public.app-category.music" },
+    "linux": { "target": "AppImage", "icon": "build/icon.png", "category": "Audio" }
+  }
+}
