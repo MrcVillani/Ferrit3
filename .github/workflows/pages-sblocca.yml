@@ -1,0 +1,24 @@
+name: Sblocca GitHub Pages
+
+# Annulla una pubblicazione di GitHub Pages rimasta bloccata "in corso".
+# Si avvia da solo quando questo file cambia; per un altro blocco cambia lo SHA qui sotto.
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/pages-sblocca.yml']
+  workflow_dispatch:
+
+permissions:
+  pages: write
+
+jobs:
+  cancel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Annulla la pubblicazione bloccata
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STUCK: 1f2399d6835c8c5ed73e4166f74f6e41587f347e
+        run: |
+          gh api -X POST "repos/${{ github.repository }}/pages/deployments/$STUCK/cancel" && echo "Annullata" || echo "Niente da annullare"
+          gh api "repos/${{ github.repository }}/pages/deployments/$STUCK" || true
