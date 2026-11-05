@@ -1,0 +1,1347 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#14202b">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Ferrite Player</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&family=VT323&family=Michroma&display=swap">
+<style>
+/* Layout: finestre modulari agganciabili su una scrivania; sotto 820px si impilano in colonna.
+   Ogni skin ridefinisce solo i token: le regole dei componenti non cambiano mai. */
+:root{
+  --desk-a:#1d222a; --desk-b:#0b0d10;
+  --chrome-hi:#626b77; --chrome:#383e47; --chrome-lo:#20242a; --edge:#06080a;
+  --tb-a:#2d4b64; --tb-b:#14202b; --tb-fg:#d8e7f3;
+  --lcd-bg:#03090c; --lcd-fg:#88e9ff; --lcd-dim:#16323d; --lcd-glow:rgba(136,233,255,.45);
+  --btn-a:#5c6570; --btn-b:#2b3037; --btn-fg:#e4eaf0; --btn-on:#88e9ff;
+  --list-bg:#04070a; --list-fg:#7fa5b6; --list-cur:#ffffff; --list-sel:#17465a; --list-num:#45707f;
+  --vis-lo:#22b07a; --vis-mid:#d9dc4c; --vis-hi:#ff5d3d; --vis-peak:#eaf6ff;
+  --label:#a2adba;
+  --r-win:7px; --r-btn:4px;
+  --font-ui:"Chakra Petch","Segoe UI",system-ui,sans-serif;
+  --font-lcd:"Share Tech Mono",ui-monospace,"Consolas",monospace;
+  --lcd-size:34px;
+  --side-w:1px; --side-c:var(--edge); --desk-fg:var(--label); --font-text:var(--font-ui);
+  color-scheme:dark;
+}
+:root[data-skin="fosfori"]{
+  --desk-a:#071007; --desk-b:#000000;
+  --chrome-hi:#1f3a20; --chrome:#0c150c; --chrome-lo:#060a06; --edge:#2b6a2f;
+  --tb-a:#0f3d13; --tb-b:#071a08; --tb-fg:#7dff8a;
+  --lcd-bg:#010501; --lcd-fg:#5cff6e; --lcd-dim:#0c2f10; --lcd-glow:rgba(92,255,110,.55);
+  --btn-a:#122012; --btn-b:#081008; --btn-fg:#5cff6e; --btn-on:#d2ffd7;
+  --list-bg:#010401; --list-fg:#43c650; --list-cur:#d2ffd7; --list-sel:#0f3d13; --list-num:#2a7a32;
+  --vis-lo:#1f8f2b; --vis-mid:#5cff6e; --vis-hi:#d2ffd7; --vis-peak:#ffffff;
+  --label:#43c650;
+  --r-win:0px; --r-btn:0px;
+  --font-ui:"VT323","Share Tech Mono",ui-monospace,monospace;
+  --font-lcd:"VT323","Share Tech Mono",ui-monospace,monospace;
+  --lcd-size:42px;
+  color-scheme:dark;
+}
+:root[data-skin="acquario"]{
+  --desk-a:#d3deeb; --desk-b:#8ea4bf;
+  --chrome-hi:#ffffff; --chrome:#e4eaf2; --chrome-lo:#b7c3d3; --edge:#71839b;
+  --tb-a:#e3eefb; --tb-b:#a6bdd8; --tb-fg:#18273a;
+  --lcd-bg:#cfdcbc; --lcd-fg:#1c2814; --lcd-dim:#b4c49f; --lcd-glow:rgba(0,0,0,0);
+  --btn-a:#f6faff; --btn-b:#8db2e1; --btn-fg:#122339; --btn-on:#1c6cd0;
+  --list-bg:#ffffff; --list-fg:#2a3a50; --list-cur:#000000; --list-sel:#bcd6f7; --list-num:#7c8ca2;
+  --vis-lo:#2a7be0; --vis-mid:#5cb0ff; --vis-hi:#a6dbff; --vis-peak:#13253d;
+  --label:#2f3f55;
+  --r-win:11px; --r-btn:11px;
+  --font-ui:"Lucida Grande","Helvetica Neue","Segoe UI",system-ui,sans-serif;
+  --font-lcd:"Share Tech Mono",ui-monospace,monospace;
+  --lcd-size:34px;
+  color-scheme:light;
+}
+
+/* Salotto: impianto hi-fi anni '90, frontale champagne, fianchetti in noce, display fluorescente */
+:root[data-skin="salotto"]{
+  --desk-a:#5c3b25; --desk-b:#20130a;
+  --chrome-hi:#f6f1e6; --chrome:#dad2c2; --chrome-lo:#a59b88; --edge:#463e33;
+  --tb-a:#efe9dc; --tb-b:#c3b9a5; --tb-fg:#2a241c;
+  --lcd-bg:#040807; --lcd-fg:#5ff2d6; --lcd-dim:#0f2b26; --lcd-glow:rgba(95,242,214,.55);
+  --btn-a:#f8f4eb; --btn-b:#b6ac98; --btn-fg:#2a241c; --btn-on:#e8732a;
+  --list-bg:#060a09; --list-fg:#4fc9b2; --list-cur:#c9fff3; --list-sel:#123a33; --list-num:#2f7d6f;
+  --vis-lo:#3fe0c2; --vis-mid:#9ff5e4; --vis-hi:#ff8a3d; --vis-peak:#ffffff;
+  --label:#3d352a; --desk-fg:#eadcc6;
+  --side-w:7px; --side-c:#6e452a;
+  --r-win:3px; --r-btn:3px;
+  --font-ui:"Michroma","Chakra Petch",system-ui,sans-serif;
+  --font-text:"Chakra Petch","Segoe UI",system-ui,sans-serif;
+  --font-lcd:"Share Tech Mono",ui-monospace,monospace;
+  --lcd-size:34px;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{
+  background:radial-gradient(ellipse at 30% 0%,var(--desk-a),var(--desk-b) 70%) fixed;
+  background-color:var(--desk-b);
+  color:var(--label);
+  font:14px/1.4 var(--font-ui);
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:18px 48px;
+  min-height:100%;
+}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--btn-on);outline-offset:1px}
+
+/* ---------- striscia superiore ---------- */
+.strip{max-width:1120px;margin:0 auto 14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{font:700 15px/1 var(--font-ui);letter-spacing:.42em;text-transform:uppercase;color:var(--desk-fg)}
+.brand small{font-weight:400;letter-spacing:.12em;opacity:.7;margin-left:.6em}
+.skins{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.skins span{font-size:11px;letter-spacing:.16em;text-transform:uppercase;opacity:.8;margin-right:2px;color:var(--desk-fg)}
+
+/* ---------- bottoni generici ---------- */
+.bevel{
+  border:1px solid var(--edge);border-radius:var(--r-btn);
+  background:linear-gradient(180deg,var(--btn-a),var(--btn-b));
+  color:var(--btn-fg);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 1px 1px rgba(0,0,0,.35);
+  cursor:pointer;
+}
+.bevel:active,.bevel[aria-pressed="true"].latch{background:linear-gradient(0deg,var(--btn-a),var(--btn-b));box-shadow:inset 0 1px 3px rgba(0,0,0,.45)}
+.chip{padding:3px 10px;font-size:12px;letter-spacing:.06em}
+.chip[aria-pressed="true"]{color:var(--btn-on);box-shadow:inset 0 1px 3px rgba(0,0,0,.45);background:linear-gradient(0deg,var(--btn-a),var(--btn-b))}
+.pbtn{padding:5px 12px;font-size:12px;letter-spacing:.06em;font-weight:600}
+.pbtn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ---------- scrivania e finestre ---------- */
+.desk{position:relative;max-width:1120px;margin:0 auto;min-height:420px}
+.win{
+  position:absolute;left:0;top:0;width:380px;
+  background:linear-gradient(180deg,var(--chrome-hi) 0,var(--chrome) 5%,var(--chrome-lo) 100%);
+  border:1px solid var(--edge);border-left:var(--side-w) solid var(--side-c);border-right:var(--side-w) solid var(--side-c);border-radius:var(--r-win);
+  box-shadow:inset 0 1px 0 var(--chrome-hi),0 12px 28px rgba(0,0,0,.42);
+  user-select:none;-webkit-user-select:none;
+}
+#w-vis{width:360px} #w-set{width:340px}
+.tb{
+  display:flex;align-items:center;gap:7px;height:22px;padding:0 5px 0 7px;
+  background:linear-gradient(180deg,var(--tb-a),var(--tb-b));color:var(--tb-fg);
+  border-radius:calc(var(--r-win) - 1px) calc(var(--r-win) - 1px) 0 0;
+  border-bottom:1px solid var(--edge);
+  font:600 11px/1 var(--font-ui);letter-spacing:.18em;text-transform:uppercase;
+  cursor:grab;touch-action:none;
+}
+.tb.dragging{cursor:grabbing}
+.win:not(.active) .tb{filter:saturate(.35) brightness(.88)}
+.grip{flex:1;height:8px;min-width:10px;opacity:.38;background:repeating-linear-gradient(180deg,var(--tb-fg) 0 1px,transparent 1px 3px)}
+.grip.short{flex:0 0 14px}
+.tbb{width:17px;height:14px;padding:0;display:grid;place-items:center;font-size:9px;line-height:1}
+.tbb svg{width:9px;height:9px;fill:currentColor}
+.wbody{padding:8px}
+.win.shaded .wbody{display:none}
+.shade-line{display:none}
+.win.shaded .shade-line{display:flex;gap:10px;align-items:center;padding:4px 8px;font:13px/1 var(--font-lcd);color:var(--lcd-fg);background:var(--lcd-bg);margin:4px;border:1px solid var(--edge);border-radius:var(--r-btn);overflow:hidden;white-space:nowrap}
+.shade-line span:last-child{overflow:hidden;text-overflow:ellipsis;min-width:0}
+
+/* ---------- display LCD ---------- */
+.lcd{
+  display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;
+  background:var(--lcd-bg);border:1px solid var(--edge);border-radius:var(--r-btn);
+  box-shadow:inset 0 2px 7px rgba(0,0,0,.55),0 1px 0 var(--chrome-hi);
+  padding:8px 10px;color:var(--lcd-fg);font-family:var(--font-lcd);
+  text-shadow:0 0 6px var(--lcd-glow);
+}
+.lcd-left{display:flex;flex-direction:column;gap:6px}
+.clock{display:flex;align-items:flex-start;gap:4px;cursor:pointer}
+.state{width:10px;height:10px;margin-top:4px;fill:currentColor;filter:drop-shadow(0 0 3px var(--lcd-glow))}
+.sign{width:.55em;font-size:var(--lcd-size);line-height:1;text-align:center}
+.time{position:relative;font-size:var(--lcd-size);line-height:1;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.time .ghost{position:absolute;inset:0;color:var(--lcd-dim);text-shadow:none}
+.time .val{position:relative}
+.time .val.off{visibility:hidden}
+#mini-vis{width:96px;height:18px;display:block}
+.lcd-right{display:flex;flex-direction:column;gap:6px;min-width:0}
+.marquee{overflow:hidden;white-space:nowrap;height:22px;font-size:17px;line-height:22px;border-bottom:1px dashed var(--lcd-dim)}
+.marquee span{display:inline-block;will-change:transform}
+.info{display:flex;gap:8px 12px;font-size:13px;align-items:baseline;flex-wrap:wrap}
+.info .u{opacity:.6;font-size:11px;margin-left:2px}
+.tag{border:1px solid currentColor;padding:0 4px;font-size:11px;line-height:15px;letter-spacing:.08em}
+.devname{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+
+/* ---------- slider ---------- */
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:16px;background:transparent;cursor:pointer;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border:1px solid var(--edge);border-radius:3px;background:linear-gradient(90deg,var(--btn-on) var(--p,0%),var(--lcd-bg) var(--p,0%));box-shadow:inset 0 1px 2px rgba(0,0,0,.6)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:12px;margin-top:-4px;border:1px solid var(--edge);border-radius:var(--r-btn);background:linear-gradient(180deg,var(--btn-a),var(--btn-b));box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+input[type=range]::-moz-range-track{height:6px;border:1px solid var(--edge);border-radius:3px;background:var(--lcd-bg)}
+input[type=range]::-moz-range-progress{height:6px;background:var(--btn-on);border-radius:3px}
+input[type=range]::-moz-range-thumb{width:22px;height:10px;border:1px solid var(--edge);border-radius:var(--r-btn);background:linear-gradient(180deg,var(--btn-a),var(--btn-b))}
+.seekrow{margin:9px 0 7px}
+
+/* ---------- trasporto ---------- */
+.ctrls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.group{display:flex;gap:2px}
+.tbtn{width:31px;height:23px;padding:0;display:grid;place-items:center}
+.tbtn svg{width:12px;height:12px;fill:currentColor}
+.toggle{position:relative;width:34px}
+.toggle .led{position:absolute;top:3px;right:3px;width:4px;height:4px;border-radius:50%;background:var(--lcd-dim)}
+.toggle[aria-pressed="true"]{color:var(--btn-on)}
+.toggle[aria-pressed="true"] .led{background:var(--btn-on);box-shadow:0 0 4px var(--btn-on)}
+.toggle .one{position:absolute;bottom:1px;right:4px;font:700 8px/1 var(--font-ui)}
+.vol{display:flex;align-items:center;gap:6px;flex:1;min-width:110px;font:11px/1 var(--font-lcd);letter-spacing:.08em}
+.vol input{flex:1}
+.vol output{width:2.2em;text-align:right;font-variant-numeric:tabular-nums}
+
+/* ---------- playlist ---------- */
+.pl-head{display:flex;gap:6px;margin-bottom:6px}
+.field{background:var(--list-bg);color:var(--list-fg);border:1px solid var(--edge);border-radius:var(--r-btn);font:14px/1.2 var(--font-lcd);padding:4px 6px;min-width:0}
+.pl-head select{flex:1}
+.pl-list{position:relative;list-style:none;margin:0;padding:3px 0;height:252px;overflow:auto;background:var(--list-bg);border:1px solid var(--edge);border-radius:var(--r-btn);font:15px/1.35 var(--font-lcd);color:var(--list-fg);box-shadow:inset 0 2px 6px rgba(0,0,0,.4)}
+.pl-list li{display:grid;grid-template-columns:2.2em minmax(0,1fr) auto;gap:6px;padding:1px 8px;cursor:pointer;white-space:nowrap}
+.pl-list li .t{overflow:hidden;text-overflow:ellipsis}
+.pl-list li .n{color:var(--list-num);text-align:right;font-variant-numeric:tabular-nums}
+.pl-list li .d{font-variant-numeric:tabular-nums}
+.pl-list li.sel{background:var(--list-sel)}
+.pl-list li.cur{color:var(--list-cur)}
+.pl-list li.cur .n{color:var(--list-cur)}
+.pl-list li.note{display:block;white-space:normal;cursor:default;padding:8px 10px;line-height:1.4}
+.pl-list li.note button{margin-top:8px}
+.pl-foot{display:flex;justify-content:space-between;gap:8px;margin-top:6px;font:13px/1 var(--font-lcd);color:var(--label);flex-wrap:wrap}
+
+/* ---------- raccolta (solo app Android) ---------- */
+.np{display:grid;grid-template-columns:76px minmax(0,1fr);gap:10px;align-items:center}
+.np-art{width:76px;height:76px;border:1px solid var(--edge);border-radius:var(--r-btn);background:var(--lcd-bg);object-fit:cover;display:block;box-shadow:inset 0 2px 6px rgba(0,0,0,.5)}
+.np-meta{min-width:0;display:flex;flex-direction:column;gap:3px;font:13px/1.3 var(--font-lcd);color:var(--label)}
+.np-meta b{font:600 14px/1.25 var(--font-text);color:var(--label);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.np-meta span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.acts:empty{display:none}
+.sp-list{height:auto;max-height:260px;min-height:60px}
+.sp-list li{grid-template-columns:34px minmax(0,1fr) auto;align-items:center;padding:3px 6px}
+.sp-list img,.sp-list .ph{width:34px;height:34px;border-radius:2px;object-fit:cover;background:var(--lcd-dim);display:block}
+.sp-list .k{display:block;font-size:11px;opacity:.65;text-transform:uppercase;letter-spacing:.06em}
+.sp-list .x{width:26px;height:22px;padding:0;font-size:11px}
+.sp-form{display:flex;gap:6px}
+.sp-form .field{flex:1}
+
+/* ---------- analizzatore ---------- */
+.screen{background:var(--lcd-bg);border:1px solid var(--edge);border-radius:var(--r-btn);box-shadow:inset 0 2px 7px rgba(0,0,0,.55);padding:6px}
+#vis{display:block;width:100%;height:150px;cursor:pointer}
+.foot{display:flex;justify-content:space-between;gap:8px;margin-top:6px;font:12px/1.2 var(--font-lcd);color:var(--label);flex-wrap:wrap}
+
+/* ---------- collegamento ---------- */
+.sect{display:flex;flex-direction:column;gap:7px}
+.lbl{font:600 10px/1 var(--font-ui);letter-spacing:.18em;text-transform:uppercase;color:var(--label);opacity:.85}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.row .field{flex:1}
+.uri{font:12px/1.35 var(--font-lcd);background:var(--list-bg);color:var(--list-fg);border:1px solid var(--edge);border-radius:var(--r-btn);padding:5px 7px;word-break:break-all;user-select:text;-webkit-user-select:text;flex:1;min-width:0}
+.box{background:var(--list-bg);color:var(--list-fg);border:1px solid var(--edge);border-radius:var(--r-btn);padding:8px 10px;font:12.5px/1.5 var(--font-text);user-select:text;-webkit-user-select:text}
+.box ol{margin:4px 0 0;padding-left:1.3em}
+.box a{color:var(--btn-on)}
+.box code{font-family:var(--font-lcd)}
+#status{font:13px/1.3 var(--font-lcd);color:var(--lcd-fg);background:var(--lcd-bg);border:1px solid var(--edge);border-radius:var(--r-btn);padding:5px 7px;min-height:28px;text-shadow:0 0 5px var(--lcd-glow)}
+.devs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.devs li{display:flex;justify-content:space-between;align-items:center;gap:8px;font:13px/1.2 var(--font-lcd);color:var(--list-fg);background:var(--list-bg);border:1px solid var(--edge);border-radius:var(--r-btn);padding:4px 4px 4px 8px}
+.devs li span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hr{height:1px;background:var(--edge);opacity:.6;margin:4px 0}
+
+/* ---------- telefono ---------- */
+@media (max-width:820px){
+  .desk{display:flex;flex-direction:column;gap:12px;height:auto!important;min-height:0}
+  .win{position:relative;left:auto!important;top:auto!important;width:100%!important;z-index:auto!important}
+  .tb{cursor:default}
+}
+/* ---------- mini player ---------- */
+.mini .strip,.mini .win:not(#w-main){display:none}
+.mini body{padding-block:8px}
+.mini .desk{height:auto!important;min-height:0}
+.mini #w-main{position:relative;left:auto!important;top:auto!important;width:min(100%,440px)!important;margin:0 auto}
+.mini #w-main.shaded .wbody{display:block}
+.mini #w-main .shade-line,.mini [data-shade]{display:none}
+.mini .tb{cursor:default}
+.mini .lcd{padding:5px 8px;gap:8px;align-items:center}
+.mini .lcd-left{gap:0}
+.mini #mini-vis,.mini .info,.mini #b-eject,.mini #g-modes,.mini .vol{display:none}
+.mini .seekrow{margin:6px 0 5px}
+:root.mini{--lcd-size:24px}
+:root.mini[data-skin="fosfori"]{--lcd-size:30px}
+@media (prefers-reduced-motion:reduce){ .marquee span{transform:none!important} }
+</style>
+
+<div class="strip">
+  <div class="brand">Ferrite <small>player modulare</small></div>
+  <div class="skins" role="group" aria-label="Skin">
+    <span>Skin</span>
+    <button class="bevel chip" id="sk-titanio" data-skin-btn="titanio" aria-pressed="false">Titanio</button>
+    <button class="bevel chip" id="sk-fosfori" data-skin-btn="fosfori" aria-pressed="false">Fosfori</button>
+    <button class="bevel chip" id="sk-acquario" data-skin-btn="acquario" aria-pressed="false">Acquario</button>
+    <button class="bevel chip" id="sk-salotto" data-skin-btn="salotto" aria-pressed="false">Salotto</button>
+  </div>
+</div>
+
+<div class="desk" id="desk">
+
+  <!-- PLAYER -->
+  <section class="win active" id="w-main" data-win="main" aria-label="Player">
+    <header class="tb"><span class="grip short"></span><span>Ferrite</span><span class="grip"></span>
+      <button class="bevel tbb" id="b-mini" aria-pressed="false" aria-label="Mini player" title="Mini player"><svg viewBox="0 0 10 10"><path fill-rule="evenodd" d="M0.5 1.5h9v7h-9zM1.5 2.5v5h7v-5z"/><path d="M4.5 5h3v1.5h-3z"/></svg></button>
+      <button class="bevel tbb" id="sh-main" data-shade aria-label="Riduci a barra" title="Riduci a barra"><svg viewBox="0 0 10 10"><path d="M1 7h8v2H1z"/></svg></button>
+    </header>
+    <div class="shade-line"><span id="sh-time">00:00</span><span id="sh-title"></span></div>
+    <div class="wbody">
+      <div class="lcd">
+        <div class="lcd-left">
+          <div class="clock" id="clock" title="Clic: tempo trascorso / rimanente">
+            <svg class="state" id="state" viewBox="0 0 16 16"><path d="M4 2.5v11L13.5 8z"/></svg>
+            <span class="sign" id="sign"></span>
+            <span class="time"><span class="ghost">88:88</span><span class="val" id="time">00:00</span></span>
+          </div>
+          <canvas id="mini-vis" aria-hidden="true"></canvas>
+        </div>
+        <div class="lcd-right">
+          <div class="marquee" id="marquee"><span id="marq"></span></div>
+          <div class="info" id="info"></div>
+        </div>
+      </div>
+      <div class="seekrow"><input type="range" id="seek" min="0" max="1000" value="0" aria-label="Posizione nel brano"></div>
+      <div class="ctrls">
+        <div class="group">
+          <button class="bevel tbtn" id="b-prev" aria-label="Precedente" title="Precedente (P)"><svg viewBox="0 0 16 16"><path d="M3 3h2v10H3zM14 3v10L6 8z"/></svg></button>
+          <button class="bevel tbtn" id="b-play" aria-label="Play" title="Play (spazio)"><svg viewBox="0 0 16 16"><path d="M4 2.5v11L13.5 8z"/></svg></button>
+          <button class="bevel tbtn" id="b-pause" aria-label="Pausa" title="Pausa (spazio)"><svg viewBox="0 0 16 16"><path d="M4 3h3v10H4zM9 3h3v10H9z"/></svg></button>
+          <button class="bevel tbtn" id="b-stop" aria-label="Stop" title="Stop"><svg viewBox="0 0 16 16"><path d="M3.5 3.5h9v9h-9z"/></svg></button>
+          <button class="bevel tbtn" id="b-next" aria-label="Successivo" title="Successivo (N)"><svg viewBox="0 0 16 16"><path d="M11 3h2v10h-2zM2 3v10l8-5z"/></svg></button>
+        </div>
+        <button class="bevel tbtn" id="b-eject" aria-label="Scegli playlist" title="Scegli playlist"><svg viewBox="0 0 16 16"><path d="M8 2.5 14 9H2zM2 11h12v2.5H2z"/></svg></button>
+        <div class="group" id="g-modes">
+          <button class="bevel tbtn toggle" id="b-shuf" aria-pressed="false" aria-label="Casuale" title="Casuale"><span class="led"></span><svg viewBox="0 0 16 16"><path d="M1.5 4.5h3l6 7h3M1.5 11.5h3l1.8-2.1M9.7 6.6l1.8-2.1h3M12.5 2.5l2 2-2 2M12.5 9.5l2 2-2 2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+          <button class="bevel tbtn toggle" id="b-rep" aria-pressed="false" aria-label="Ripeti" title="Ripeti: no / tutto / brano"><span class="led"></span><svg viewBox="0 0 16 16"><path d="M2.5 7V5.5a2 2 0 0 1 2-2h8M10.5 1.5l2 2-2 2M13.5 9v1.5a2 2 0 0 1-2 2h-8M5.5 14.5l-2-2 2-2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span class="one" id="rep-one" hidden>1</span></button>
+        </div>
+        <label class="vol" for="vol">VOL <input type="range" id="vol" min="0" max="100" value="70"><output id="vol-out">70</output></label>
+      </div>
+    </div>
+  </section>
+
+  <!-- RACCOLTA (solo app Android) -->
+  <section class="win" id="w-sp" data-win="sp" aria-label="Raccolta" hidden>
+    <header class="tb"><span class="grip short"></span><span>Raccolta</span><span class="grip"></span>
+      <button class="bevel tbb" id="sh-sp" data-shade aria-label="Riduci a barra" title="Riduci a barra"><svg viewBox="0 0 10 10"><path d="M1 7h8v2H1z"/></svg></button>
+    </header>
+    <div class="wbody sect">
+      <div class="np">
+        <img class="np-art" id="np-art" alt="Copertina" hidden>
+        <div class="np-art" id="np-noart"></div>
+        <div class="np-meta"><b id="np-title">Nessun brano</b><span id="np-artist"></span><span id="np-album"></span></div>
+      </div>
+      <div class="acts" id="sp-acts"></div>
+      <form class="sp-form" id="sp-search">
+        <input class="field" id="sp-q" type="search" placeholder="Cerca e riproduci: artista, brano, album…" enterkeyhint="search" autocomplete="off">
+        <button class="bevel pbtn" type="submit">Vai</button>
+      </form>
+      <span class="lbl">Salvati</span>
+      <ul class="pl-list sp-list" id="sp-list" aria-label="Playlist e album salvati"></ul>
+      <form class="sp-form" id="sp-add">
+        <input class="field" id="sp-link" placeholder="Incolla un link Spotify" autocomplete="off" inputmode="url">
+        <button class="bevel pbtn" type="submit">Aggiungi</button>
+      </form>
+      <div class="foot"><span>In Spotify: Condividi → Ferrite per salvare una playlist, un album o un artista</span></div>
+    </div>
+  </section>
+
+  <!-- PLAYLIST -->
+  <section class="win" id="w-pl" data-win="pl" aria-label="Playlist">
+    <header class="tb"><span class="grip short"></span><span>Playlist</span><span class="grip"></span>
+      <button class="bevel tbb" id="sh-pl" data-shade aria-label="Riduci a barra" title="Riduci a barra"><svg viewBox="0 0 10 10"><path d="M1 7h8v2H1z"/></svg></button>
+    </header>
+    <div class="wbody">
+      <div class="pl-head">
+        <select class="field" id="pl-select" aria-label="Sorgente"></select>
+      </div>
+      <ol class="pl-list" id="pl-list" tabindex="0" aria-label="Brani"></ol>
+      <div class="pl-foot"><span id="pl-count"></span><span id="pl-total"></span></div>
+    </div>
+  </section>
+
+  <!-- ANALIZZATORE -->
+  <section class="win" id="w-vis" data-win="vis" aria-label="Analizzatore">
+    <header class="tb"><span class="grip short"></span><span>Analizzatore</span><span class="grip"></span>
+      <button class="bevel tbb" id="sh-vis" data-shade aria-label="Riduci a barra" title="Riduci a barra"><svg viewBox="0 0 10 10"><path d="M1 7h8v2H1z"/></svg></button>
+    </header>
+    <div class="wbody">
+      <div class="screen"><canvas id="vis" aria-label="Analizzatore di spettro" title="Clic: cambia modalità"></canvas></div>
+      <div class="foot"><span id="vis-mode">SPETTRO · 32 BANDE</span><span>clic per cambiare · <span id="vis-src">simulato</span></span></div>
+    </div>
+  </section>
+
+  <!-- COLLEGAMENTO -->
+  <section class="win" id="w-set" data-win="set" aria-label="Collegamento Spotify">
+    <header class="tb"><span class="grip short"></span><span>Collegamento</span><span class="grip"></span>
+      <button class="bevel tbb" id="sh-set" data-shade aria-label="Riduci a barra" title="Riduci a barra"><svg viewBox="0 0 10 10"><path d="M1 7h8v2H1z"/></svg></button>
+    </header>
+    <div class="wbody">
+      <div class="sect">
+        <div id="status">Modalità demo</div>
+        <div id="embedded-note" class="box" hidden>
+          Qui sei nell'anteprima: questa pagina non può contattare Spotify. Per usare il tuo account scarica il file e pubblicalo su Netlify o GitHub Pages, oppure aprilo in locale su <code>http://127.0.0.1:porta</code>.
+        </div>
+        <div id="live-form" class="sect">
+          <span class="lbl">Redirect URI</span>
+          <div class="row"><div class="uri" id="redir"></div><button class="bevel pbtn" id="b-copy">Copia</button></div>
+          <label class="lbl" for="cid">Client ID</label>
+          <div class="row"><input class="field" id="cid" autocomplete="off" spellcheck="false" placeholder="incolla il Client ID"></div>
+          <div class="row">
+            <button class="bevel pbtn" id="b-login">Collega Spotify</button>
+            <button class="bevel pbtn" id="b-logout" hidden>Scollega</button>
+          </div>
+        </div>
+        <div id="dev-sect" class="sect" hidden>
+          <div class="row" style="justify-content:space-between"><span class="lbl">Dispositivi</span><button class="bevel pbtn" id="b-devs">Aggiorna</button></div>
+          <ul class="devs" id="devs"></ul>
+        </div>
+        <div id="native-sect" class="sect" hidden>
+          <div class="row">
+            <button class="bevel pbtn" id="b-notif">Consenti accesso</button>
+            <button class="bevel pbtn" id="b-audio">Analizzatore reale</button>
+            <button class="bevel pbtn" id="b-open">Apri Spotify</button>
+          </div>
+          <div class="box">
+            Ferrite comanda il player in riproduzione tramite i controlli multimediali di Android, senza account sviluppatore.
+            <ol>
+              <li>Premi <b>Consenti accesso</b> e attiva Ferrite in “Accesso alle notifiche”.</li>
+              <li>Se l'interruttore è grigio (Android 13 e successivi): premi <button class="bevel pbtn" id="b-appset" style="padding:1px 8px">Info app</button>, poi menu ⋮ → <b>Consenti impostazioni con restrizioni</b>, e ripeti il punto 1.</li>
+              <li>Fai partire un brano su Spotify: Ferrite lo mostra e lo comanda.</li>
+            </ol>
+            <b>Analizzatore reale</b> chiede il permesso che Android chiama “microfono”: serve a leggere il segnale in uscita per disegnare le barre, non registra e non salva niente.
+          </div>
+        </div>
+        <div class="box" id="api-help">
+          Come collegarlo:
+          <ol>
+            <li>Crea un'app su <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener">developer.spotify.com</a> (serve Premium, massimo 5 utenti).</li>
+            <li>Aggiungi come Redirect URI l'indirizzo qui sopra e spunta “Web API”.</li>
+            <li>Incolla il Client ID e premi Collega.</li>
+          </ol>
+          L'audio esce dall'app Spotify ufficiale (telefono, PC o casse): questa pagina la comanda via Spotify Connect.
+        </div>
+        <div class="hr"></div>
+        <div class="row"><button class="bevel pbtn" id="b-reset">Ripristina disposizione</button></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('ferrite:' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('ferrite:' + k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem('ferrite:' + k); } catch (e) {} }
+};
+const EMBEDDED = (() => { try { return window.top !== window; } catch (e) { return true; } })();
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SCOPES = 'user-read-playback-state user-modify-playback-state user-read-currently-playing playlist-read-private playlist-read-collaborative user-library-read';
+
+const DEMO = [
+  ['Neon sull\'Aurelia', 'Orchestra Fantasma', 222],
+  ['Ferro e Cobalto', 'I Diodi', 245],
+  ['Modem a 56k', 'Linea Commutata', 178],
+  ['Ultimo Treno Notturno', 'Velluto Elettrico', 311],
+  ['Cristalli Liquidi', 'Pixel Bianco', 207],
+  ['Salvaschermo', 'Tubo Catodico', 284],
+  ['Tramonto in 256 Colori', 'Gli Analogici', 239],
+  ['Buffering', 'Coda di Stampa', 151]
+].map((t, i) => ({ uri: 'demo:' + i, title: t[0], artist: t[1], dur: t[2] * 1000 }));
+
+const S = {
+  mode: 'demo', playing: false, pos: 0, track: null, tracks: [], cur: -1, sel: 0,
+  shuffle: false, repeat: 'off', vol: 70, remaining: store.get('remaining', false),
+  device: null, src: 'demo', srcUri: null, listNote: '', notePlay: false, msg: null
+};
+
+/* ---------------- utilità ---------------- */
+const pad = n => String(n).padStart(2, '0');
+const fmt = ms => { const s = Math.max(0, Math.floor(ms / 1000)); return pad(Math.min(99, Math.floor(s / 60))) + ':' + pad(s % 60); };
+const fmtLong = ms => { const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return (h ? h + ':' + pad(m) : m) + ':' + pad(s % 60); };
+const hash = str => { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0); };
+const setP = el => el.style.setProperty('--p', (el.value - el.min) / (el.max - el.min) * 100 + '%');
+function flash(text) { S.msg = { text, until: performance.now() + 4500 }; $('#status').textContent = text; }
+
+/* ---------------- skin ---------------- */
+let VC = {};
+function readVisColors() {
+  const cs = getComputedStyle(document.documentElement);
+  for (const k of ['vis-lo', 'vis-mid', 'vis-hi', 'vis-peak', 'lcd-fg', 'lcd-dim']) VC[k] = cs.getPropertyValue('--' + k).trim();
+}
+function setSkin(k) {
+  if (!['titanio', 'fosfori', 'acquario', 'salotto'].includes(k)) k = 'titanio';
+  document.documentElement.dataset.skin = k;
+  store.set('skin', k);
+  $$('[data-skin-btn]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.skinBtn === k)));
+  readVisColors();
+  marqText = null;
+  requestAnimationFrame(() => { fitCanvases(); fitDesk(); });
+}
+$$('[data-skin-btn]').forEach(b => b.addEventListener('click', () => setSkin(b.dataset.skinBtn)));
+
+/* ---------------- finestre ---------------- */
+const desk = $('#desk');
+const wins = $$('.win');
+const W = id => $('#w-' + id);
+const isWide = () => innerWidth > 820;
+const isMini = () => document.documentElement.classList.contains('mini');
+let zTop = 10;
+function place(w, x, y) { w.style.left = Math.round(x) + 'px'; w.style.top = Math.round(y) + 'px'; }
+function focusWin(w) { w.style.zIndex = ++zTop; wins.forEach(o => o.classList.toggle('active', o === w)); }
+function fitDesk() {
+  if (!isWide()) { desk.style.height = ''; return; }
+  let b = 0; for (const w of wins) b = Math.max(b, w.offsetTop + w.offsetHeight);
+  desk.style.height = (b + 16) + 'px';
+}
+function defaultLayout() {
+  const m = W('main'), p = W('pl'), v = W('vis'), s = W('set');
+  const dw = desk.clientWidth, gap = 12;
+  place(m, 0, 0);
+  place(p, 0, m.offsetHeight);
+  const x2 = m.offsetWidth + gap;
+  place(v, x2, 0);
+  if (dw >= x2 + v.offsetWidth + gap + s.offsetWidth) place(s, x2 + v.offsetWidth + gap, 0);
+  else place(s, x2, v.offsetHeight + gap);
+  const r = W('sp'); if (r && !r.hidden) place(r, 0, p.offsetTop + p.offsetHeight + gap);
+}
+function saveLayout() {
+  if (!isWide() || isMini()) return;
+  const L = {}; wins.forEach(w => L[w.dataset.win] = [w.offsetLeft, w.offsetTop]);
+  store.set('layout', L);
+}
+function clampAll() {
+  const dw = desk.clientWidth;
+  wins.forEach(w => place(w, Math.max(0, Math.min(w.offsetLeft, dw - w.offsetWidth)), Math.max(0, w.offsetTop)));
+}
+function applyLayout() {
+  if (!isWide()) { fitDesk(); return; }
+  const L = store.get('layout', null);
+  if (L && wins.every(w => Array.isArray(L[w.dataset.win]))) { wins.forEach(w => place(w, L[w.dataset.win][0], L[w.dataset.win][1])); clampAll(); }
+  else defaultLayout();
+  fitDesk();
+}
+function snap(w, x, y) {
+  const Wd = w.offsetWidth, H = w.offsetHeight, dw = desk.clientWidth, T = 10;
+  const xs = [0, dw - Wd], ys = [0];
+  for (const o of wins) if (o !== w) {
+    const ox = o.offsetLeft, oy = o.offsetTop, ow = o.offsetWidth, oh = o.offsetHeight;
+    xs.push(ox, ox + ow, ox - Wd, ox + ow - Wd); ys.push(oy, oy + oh, oy - H, oy + oh - H);
+  }
+  let bx = x, by = y, dx = T, dy = T;
+  for (const c of xs) { const d = Math.abs(c - x); if (d < dx) { dx = d; bx = c; } }
+  for (const c of ys) { const d = Math.abs(c - y); if (d < dy) { dy = d; by = c; } }
+  return [Math.max(0, Math.min(bx, dw - Wd)), Math.max(0, by)];
+}
+wins.forEach(w => {
+  w.addEventListener('pointerdown', () => focusWin(w));
+  const tb = w.querySelector('.tb');
+  tb.addEventListener('pointerdown', e => {
+    if (!isWide() || isMini() || e.button !== 0 || e.target.closest('button')) return;
+    e.preventDefault();
+    tb.setPointerCapture(e.pointerId);
+    const sx = e.clientX, sy = e.clientY, ox = w.offsetLeft, oy = w.offsetTop;
+    tb.classList.add('dragging');
+    const mv = ev => { const [x, y] = snap(w, ox + ev.clientX - sx, oy + ev.clientY - sy); place(w, x, y); fitDesk(); };
+    const up = () => {
+      tb.removeEventListener('pointermove', mv); tb.removeEventListener('pointerup', up); tb.removeEventListener('pointercancel', up);
+      tb.classList.remove('dragging'); saveLayout();
+    };
+    tb.addEventListener('pointermove', mv); tb.addEventListener('pointerup', up); tb.addEventListener('pointercancel', up);
+  });
+  tb.addEventListener('dblclick', e => { if (!e.target.closest('button')) toggleShade(w); });
+  w.querySelector('[data-shade]').addEventListener('click', () => toggleShade(w));
+});
+function toggleShade(w, force) {
+  if (isMini()) return;
+  const before = w.offsetHeight, bottom = w.offsetTop + before;
+  const want = force === undefined ? !w.classList.contains('shaded') : force;
+  if (want === w.classList.contains('shaded')) return;
+  w.classList.toggle('shaded', want);
+  const delta = w.offsetHeight - before;
+  if (isWide()) {
+    for (const o of wins) {
+      if (o === w) continue;
+      const overlap = o.offsetLeft < w.offsetLeft + w.offsetWidth && o.offsetLeft + o.offsetWidth > w.offsetLeft;
+      if (overlap && Math.abs(o.offsetTop - bottom) < 3) place(o, o.offsetLeft, o.offsetTop + delta);
+    }
+  }
+  const sh = store.get('shaded', {}); sh[w.dataset.win] = want; store.set('shaded', sh);
+  fitDesk(); saveLayout();
+}
+function setMini(on) {
+  document.documentElement.classList.toggle('mini', on);
+  $('#b-mini').setAttribute('aria-pressed', String(on));
+  store.set('mini', on);
+  marqText = null;
+  requestAnimationFrame(() => {
+    if (!on) applyLayout(); else fitDesk();
+    fitCanvases();
+    if (window.ferriteDesktop && window.ferriteDesktop.setMini) {
+      const h = Math.ceil(W('main').getBoundingClientRect().bottom + window.scrollY + 10);
+      window.ferriteDesktop.setMini(on, h);
+    }
+  });
+}
+$('#b-mini').addEventListener('click', () => setMini(!isMini()));
+$('#b-reset').addEventListener('click', () => {
+  wins.forEach(w => w.classList.remove('shaded'));
+  store.del('layout'); store.del('shaded');
+  if (isWide()) { defaultLayout(); fitDesk(); }
+  flash('Disposizione ripristinata');
+});
+addEventListener('resize', () => { if (isMini()) { fitCanvases(); return; } if (isWide()) { if (!desk.style.height) applyLayout(); else clampAll(); } fitDesk(); fitCanvases(); });
+
+/* ---------------- display ---------------- */
+const elTime = $('#time'), elSign = $('#sign'), elState = $('#state'), elSeek = $('#seek'), elVol = $('#vol');
+const ICON = {
+  play: 'M4 2.5v11L13.5 8z', pause: 'M4 3h3v10H4zM9 3h3v10H9z', stop: 'M3.5 3.5h9v9h-9z'
+};
+let lastState = '';
+function renderTime(now) {
+  const t = S.track;
+  let ms = t ? (S.remaining ? t.dur - S.pos : S.pos) : 0;
+  const txt = fmt(ms);
+  if (elTime.textContent !== txt) elTime.textContent = txt;
+  const sign = t && S.remaining ? '-' : '';
+  if (elSign.textContent !== sign) elSign.textContent = sign;
+  const blink = t && !S.playing && S.pos > 0 && Math.floor(now / 500) % 2 === 1;
+  elTime.classList.toggle('off', !!blink);
+  const st = S.playing ? 'play' : (t && S.pos > 0 ? 'pause' : 'stop');
+  if (st !== lastState) { elState.firstElementChild.setAttribute('d', ICON[st]); lastState = st; }
+  $('#sh-time').textContent = (sign || '') + txt;
+}
+let seeking = false;
+function renderSeek() {
+  if (seeking) return;
+  const t = S.track;
+  elSeek.value = t && t.dur ? Math.round(S.pos / t.dur * 1000) : 0;
+  setP(elSeek);
+}
+function renderToggles() {
+  $('#b-shuf').setAttribute('aria-pressed', String(!!S.shuffle));
+  $('#b-rep').setAttribute('aria-pressed', String(S.repeat !== 'off'));
+  $('#rep-one').hidden = S.repeat !== 'track';
+}
+let volDrag = false;
+function renderVol() {
+  if (volDrag) return;
+  elVol.value = S.vol; setP(elVol); $('#vol-out').textContent = S.vol;
+}
+function renderInfo() {
+  const box = $('#info'); box.textContent = '';
+  const add = (html) => { const s = document.createElement('span'); s.innerHTML = html; box.appendChild(s); return s; };
+  if (S.mode === 'demo') {
+    add('320<span class="u">kbps</span>'); add('44<span class="u">kHz</span>'); add('STEREO');
+    add('<span class="tag">DEMO</span>');
+  } else if (S.mode === 'native') {
+    const n = S.nat || {};
+    add('<span class="tag">' + (n.access ? 'ANDROID' : 'NESSUN ACCESSO') + '</span>');
+    const d = add(''); d.className = 'devname';
+    d.textContent = n.app ? n.app.toUpperCase() + (n.remote ? ' · REMOTO' : '') : (n.access ? 'NESSUN PLAYER' : '');
+  } else {
+    add('<span class="tag">SPOTIFY</span>');
+    const d = add(''); d.className = 'devname';
+    d.textContent = S.device ? S.device.name.toUpperCase() : 'NESSUN DISPOSITIVO';
+  }
+}
+
+/* marquee */
+const marqBox = $('#marquee'), marq = $('#marq');
+let marqText = null, marqHalf = 0, marqOff = 0, marqScroll = false;
+const SEP = '   ***   ';
+function marqueeLabel() {
+  if (S.msg && performance.now() < S.msg.until) return S.msg.text.toUpperCase();
+  const t = S.track;
+  if (!t) return S.mode === 'live' || S.mode === 'native' ? 'FERRITE · IN ATTESA DI SPOTIFY' : 'FERRITE PLAYER';
+  const n = S.cur >= 0 ? (S.cur + 1) + '. ' : '';
+  return n + (t.artist ? t.artist + ' - ' : '') + t.title + (t.dur ? ' (' + fmt(t.dur) + ')' : '');
+}
+function renderMarquee(dt) {
+  const txt = marqueeLabel();
+  if (txt !== marqText) {
+    marqText = txt; marqOff = 0;
+    marq.textContent = txt + SEP;
+    marqHalf = marq.offsetWidth;
+    marqScroll = !REDUCED && marqHalf > marqBox.clientWidth;
+    if (marqScroll) marq.textContent = txt + SEP + txt + SEP;
+    else marq.textContent = txt;
+    marq.style.transform = '';
+    $('#sh-title').textContent = txt;
+  }
+  if (marqScroll) {
+    marqOff = (marqOff + dt * 0.032) % marqHalf;
+    marq.style.transform = 'translateX(' + (-marqOff).toFixed(1) + 'px)';
+  }
+}
+
+/* ---------------- analizzatore (simulato) ---------------- */
+const NB = 32;
+const lv = new Float32Array(NB), pk = new Float32Array(NB);
+let visMode = store.get('visMode', 'spectrum');
+let seed = 1, rnd = 1;
+const rand = () => { rnd = (Math.imul(rnd, 1664525) + 1013904223) >>> 0; return rnd / 4294967296; };
+function fitCanvas(c) {
+  const r = c.getBoundingClientRect(), d = devicePixelRatio || 1;
+  if (!r.width) return;
+  c.width = Math.round(r.width * d); c.height = Math.round(r.height * d);
+  c.getContext('2d').setTransform(d, 0, 0, d, 0, 0);
+}
+const cv = $('#vis'), mcv = $('#mini-vis');
+function fitCanvases() { fitCanvas(cv); fitCanvas(mcv); }
+if ('ResizeObserver' in window) new ResizeObserver(fitCanvases).observe(cv);
+let visReal = false;
+function updateLevels(now, dt) {
+  const real = S.mode === 'native' ? nativeBands(now) : null;
+  if (!!real !== visReal) { visReal = !!real; $('#vis-src').textContent = visReal ? 'reale' : 'simulato'; }
+  if (real && real.length === NB) {
+    for (let i = 0; i < NB; i++) {
+      const v = Math.max(0, Math.min(1, real[i] || 0));
+      lv[i] = v > lv[i] ? v : Math.max(v, lv[i] - dt * 0.0022);
+      if (lv[i] >= pk[i]) pk[i] = lv[i]; else pk[i] = Math.max(0, pk[i] - dt * 0.00045);
+    }
+    return;
+  }
+  const t = now / 1000, on = S.playing && S.track;
+  const bpm = 84 + (seed % 56);
+  const beat = Math.pow(Math.max(0, Math.sin(t * Math.PI * 2 * bpm / 60)), 6);
+  const beat2 = Math.pow(Math.max(0, Math.sin(t * Math.PI * 4 * bpm / 60 + 1.3)), 8);
+  for (let i = 0; i < NB; i++) {
+    const f = i / (NB - 1);
+    let v = 0;
+    if (on) {
+      v = 0.36 + 0.22 * Math.sin(t * (1.6 + f * 3.2) + (seed % 97) * 0.13 * (i + 1))
+            + 0.16 * Math.sin(t * (4.1 + f * 6.7) + i * 1.9);
+      v *= (1 - f * 0.5);
+      v += beat * (1 - f) * 0.42 + beat2 * f * 0.25;
+      v += (rand() - 0.5) * 0.14;
+      v = Math.max(0, Math.min(1, v * (0.45 + S.vol / 180)));
+    }
+    lv[i] = v > lv[i] ? v : Math.max(0, lv[i] - dt * 0.0022);
+    if (lv[i] >= pk[i]) pk[i] = lv[i]; else pk[i] = Math.max(0, pk[i] - dt * 0.00045);
+  }
+}
+function colorFor(f) { return f > 0.8 ? VC['vis-hi'] : f > 0.55 ? VC['vis-mid'] : VC['vis-lo']; }
+function drawBars(c, n, seg, gap, withPeaks) {
+  const ctx = c.getContext('2d'), d = devicePixelRatio || 1;
+  const w = c.width / d, h = c.height / d;
+  ctx.clearRect(0, 0, w, h);
+  const bw = (w - gap * (n - 1)) / n, step = NB / n;
+  const rows = Math.max(1, Math.floor(h / seg));
+  for (let i = 0; i < n; i++) {
+    let v = 0, p = 0;
+    for (let k = 0; k < step; k++) { v = Math.max(v, lv[Math.floor(i * step + k)]); p = Math.max(p, pk[Math.floor(i * step + k)]); }
+    const x = i * (bw + gap);
+    const lit = Math.round(v * rows);
+    for (let r = 0; r < rows; r++) {
+      const y = h - (r + 1) * seg;
+      ctx.fillStyle = r < lit ? colorFor(r / rows) : VC['lcd-dim'];
+      ctx.globalAlpha = r < lit ? 1 : 0.55;
+      ctx.fillRect(x, y + 1, bw, seg - 1);
+    }
+    ctx.globalAlpha = 1;
+    if (withPeaks && p > 0.02) {
+      ctx.fillStyle = VC['vis-peak'];
+      ctx.fillRect(x, h - Math.round(p * rows) * seg - 1, bw, 2);
+    }
+  }
+}
+function drawScope(now) {
+  const ctx = cv.getContext('2d'), d = devicePixelRatio || 1;
+  const w = cv.width / d, h = cv.height / d, t = now / 1000;
+  ctx.clearRect(0, 0, w, h);
+  ctx.strokeStyle = VC['lcd-dim']; ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let gx = 0; gx <= 8; gx++) { const x = Math.round(gx * w / 8) + .5; ctx.moveTo(x, 0); ctx.lineTo(x, h); }
+  for (let gy = 0; gy <= 4; gy++) { const y = Math.round(gy * h / 4) + .5; ctx.moveTo(0, y); ctx.lineTo(w, y); }
+  ctx.stroke();
+  let e = 0; for (let i = 0; i < NB; i++) e += lv[i]; e /= NB;
+  ctx.strokeStyle = VC['lcd-fg']; ctx.lineWidth = 1.6;
+  ctx.shadowColor = VC['lcd-fg']; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for (let x = 0; x <= w; x += 2) {
+    const u = x / w;
+    const y = h / 2 + (Math.sin(u * 23 + t * 9) * 0.5 + Math.sin(u * 61 - t * 13) * 0.3 + Math.sin(u * 7 + t * 3) * 0.4) * e * h * 0.55;
+    x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke(); ctx.shadowBlur = 0;
+}
+function drawVis(now, dt) {
+  updateLevels(now, dt);
+  if (!W('vis').classList.contains('shaded')) {
+    if (visMode === 'scope') drawScope(now); else drawBars(cv, NB, 5, 2, true);
+  }
+  if (!W('main').classList.contains('shaded')) drawBars(mcv, 16, 3, 1, false);
+}
+cv.addEventListener('click', () => {
+  visMode = visMode === 'scope' ? 'spectrum' : 'scope';
+  store.set('visMode', visMode);
+  $('#vis-mode').textContent = visMode === 'scope' ? 'OSCILLOSCOPIO' : 'SPETTRO · 32 BANDE';
+});
+$('#vis-mode').textContent = visMode === 'scope' ? 'OSCILLOSCOPIO' : 'SPETTRO · 32 BANDE';
+
+/* ---------------- playlist ---------------- */
+const list = $('#pl-list');
+function renderList() {
+  list.textContent = '';
+  if (S.listNote) {
+    const li = document.createElement('li'); li.className = 'note';
+    li.textContent = S.listNote;
+    if (S.notePlay && S.srcUri) {
+      const b = document.createElement('button'); b.className = 'bevel pbtn'; b.textContent = 'Riproduci playlist';
+      b.addEventListener('click', () => Live.cmd('PUT', '/me/player/play', { context_uri: S.srcUri }));
+      li.appendChild(document.createElement('br')); li.appendChild(b);
+    }
+    list.appendChild(li);
+  }
+  let total = 0;
+  S.tracks.forEach((t, i) => {
+    total += t.dur || 0;
+    const li = document.createElement('li'); li.dataset.i = i;
+    const n = document.createElement('span'); n.className = 'n'; n.textContent = (i + 1) + '.';
+    const ti = document.createElement('span'); ti.className = 't'; ti.textContent = t.artist ? t.artist + ' - ' + t.title : t.title;
+    const d = document.createElement('span'); d.className = 'd'; d.textContent = t.dur ? fmt(t.dur) : '';
+    li.append(n, ti, d);
+    list.appendChild(li);
+  });
+  $('#pl-count').textContent = S.tracks.length ? S.tracks.length + ' brani' : '';
+  $('#pl-total').textContent = S.tracks.length && total ? fmtLong(total) : '';
+  markList(false);
+}
+function markList(scroll) {
+  S.cur = S.mode === 'native' ? S.tracks.findIndex(t => t.active) : S.track ? S.tracks.findIndex(t => t.uri === S.track.uri) : -1;
+  $$('#pl-list li[data-i]').forEach(li => {
+    const i = +li.dataset.i;
+    li.classList.toggle('cur', i === S.cur);
+    li.classList.toggle('sel', i === S.sel);
+  });
+  if (scroll && S.cur >= 0) scrollToRow(S.cur);
+}
+function scrollToRow(i) {
+  const li = list.querySelector('li[data-i="' + i + '"]'); if (!li) return;
+  const top = li.offsetTop;
+  if (top < list.scrollTop || top + li.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = top - list.clientHeight / 2;
+}
+list.addEventListener('click', e => {
+  const li = e.target.closest('li[data-i]'); if (!li) return;
+  S.sel = +li.dataset.i; markList(false);
+  if (e.pointerType === 'touch' || matchMedia('(pointer: coarse)').matches) eng().playIndex(S.sel);
+});
+list.addEventListener('dblclick', e => { const li = e.target.closest('li[data-i]'); if (li) eng().playIndex(+li.dataset.i); });
+list.addEventListener('keydown', e => {
+  if (!S.tracks.length) return;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault(); e.stopPropagation();
+    S.sel = Math.max(0, Math.min(S.tracks.length - 1, S.sel + (e.key === 'ArrowDown' ? 1 : -1)));
+    markList(false); scrollToRow(S.sel);
+  } else if (e.key === 'Enter') { e.preventDefault(); eng().playIndex(S.sel); }
+});
+const plSelect = $('#pl-select');
+function addOpt(value, label) { const o = document.createElement('option'); o.value = value; o.textContent = label; plSelect.appendChild(o); }
+plSelect.addEventListener('change', () => { if (S.mode === 'live') Live.selectSource(plSelect.value); });
+
+function onTrackChange() {
+  seed = S.track ? hash(S.track.uri) : 1; rnd = seed || 1;
+  markList(true);
+}
+
+/* ---------------- motore demo ---------------- */
+const Demo = {
+  load() {
+    S.mode = 'demo'; S.src = 'demo'; S.tracks = DEMO; S.listNote = ''; S.notePlay = false;
+    plSelect.textContent = ''; addOpt('demo', 'Cassetta demo · 8 brani'); plSelect.disabled = true;
+    renderList();
+    if (!S.track || !S.track.uri.startsWith('demo:')) { S.track = DEMO[0]; S.pos = 41000; S.playing = true; onTrackChange(); }
+  },
+  playIndex(i) { if (!S.tracks[i]) return; S.track = S.tracks[i]; S.pos = 0; S.playing = true; S.sel = i; onTrackChange(); },
+  play() { if (!S.track) return this.playIndex(0); S.playing = true; },
+  pause() { S.playing = false; },
+  toggle() { S.playing ? this.pause() : this.play(); },
+  stop() { S.playing = false; S.pos = 0; },
+  next(manual = true) {
+    const n = S.tracks.length; if (!n) return;
+    let i;
+    if (S.shuffle && n > 1) { do { i = Math.floor(Math.random() * n); } while (i === S.cur); }
+    else i = S.cur + 1;
+    if (i >= n) { if (S.repeat === 'off' && !manual) { this.stop(); return; } i = 0; }
+    this.playIndex(i);
+  },
+  prev() { if (S.pos > 3000) { S.pos = 0; return; } const n = S.tracks.length; this.playIndex((S.cur - 1 + n) % n); },
+  seek(ms) { S.pos = ms; },
+  volume() {}, setShuffle(b) { S.shuffle = b; renderToggles(); }, setRepeat(r) { S.repeat = r; renderToggles(); },
+  ended() { if (S.repeat === 'track') { S.pos = 0; return; } this.next(false); }
+};
+
+/* ---------------- Spotify (PKCE + Web API) ---------------- */
+const redirectUri = () => location.origin + location.pathname.replace(/index\.html$/, '');
+const b64url = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+function randStr(n) { const a = new Uint8Array(n); crypto.getRandomValues(a); return b64url(a.buffer).slice(0, n); }
+let tok = store.get('tok', null);
+async function tokenRequest(params) {
+  const r = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(params)
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error_description || j.error || ('Token rifiutato (' + r.status + ')'));
+  tok = { access: j.access_token, refresh: j.refresh_token || (tok && tok.refresh), exp: Date.now() + (j.expires_in - 60) * 1000 };
+  store.set('tok', tok);
+}
+async function login() {
+  const cid = $('#cid').value.trim();
+  if (!cid) { flash('Incolla prima il Client ID'); $('#cid').focus(); return; }
+  store.set('cid', cid);
+  const verifier = randStr(64);
+  const challenge = b64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
+  store.set('pkce', verifier);
+  const q = new URLSearchParams({ client_id: cid, response_type: 'code', redirect_uri: redirectUri(), code_challenge_method: 'S256', code_challenge: challenge, scope: SCOPES });
+  location.href = 'https://accounts.spotify.com/authorize?' + q;
+}
+async function handleRedirect() {
+  const q = new URLSearchParams(location.search);
+  if (!q.has('code') && !q.has('error')) return;
+  history.replaceState(null, '', redirectUri());
+  if (q.has('error')) { flash('Accesso annullato: ' + q.get('error')); return; }
+  const verifier = store.get('pkce', null), cid = store.get('cid', '');
+  store.del('pkce');
+  if (!verifier || !cid) { flash('Sessione di accesso scaduta, riprova'); return; }
+  try {
+    await tokenRequest({ grant_type: 'authorization_code', code: q.get('code'), redirect_uri: redirectUri(), client_id: cid, code_verifier: verifier });
+  } catch (e) { flash(e.message); tok = null; store.del('tok'); }
+}
+async function ensureToken() {
+  if (!tok) throw new Error('Non collegato');
+  if (Date.now() > tok.exp) await tokenRequest({ grant_type: 'refresh_token', refresh_token: tok.refresh, client_id: store.get('cid', '') });
+}
+async function api(path, opt = {}, retried = false) {
+  await ensureToken();
+  const r = await fetch('https://api.spotify.com/v1' + path, {
+    method: opt.method || 'GET',
+    headers: Object.assign({ Authorization: 'Bearer ' + tok.access }, opt.body ? { 'Content-Type': 'application/json' } : {}),
+    body: opt.body ? JSON.stringify(opt.body) : undefined
+  });
+  if (r.status === 401 && !retried) { tok.exp = 0; return api(path, opt, true); }
+  if (r.status === 204) return null;
+  const text = await r.text();
+  let j = null; try { j = text ? JSON.parse(text) : null; } catch (e) {}
+  if (!r.ok) {
+    const reason = j && j.error && (j.error.reason || j.error.message);
+    if (reason === 'NO_ACTIVE_DEVICE' || r.status === 404 && path.startsWith('/me/player')) throw new Error('Nessun dispositivo attivo: apri Spotify o scegline uno qui');
+    if (reason === 'PREMIUM_REQUIRED') throw new Error('Serve Spotify Premium per comandare la riproduzione');
+    if (r.status === 429) throw new Error('Troppe richieste, rallento un attimo');
+    throw new Error((j && j.error && j.error.message) || ('Errore Spotify ' + r.status));
+  }
+  return j;
+}
+const mapTrack = t => (t && t.uri && !t.uri.startsWith('spotify:local')) ? {
+  uri: t.uri, title: t.name || '', dur: t.duration_ms || 0,
+  artist: (t.artists || []).map(a => a.name).join(', ') || (t.show && t.show.name) || ''
+} : null;
+
+let syncing = false, pollTimer = null, volTimer = null;
+const Live = {
+  async load() {
+    S.mode = 'live'; S.track = null; S.playing = false; S.pos = 0;
+    plSelect.disabled = false; plSelect.textContent = ''; addOpt('liked', '♥ Brani che ti piacciono');
+    try {
+      const j = await api('/me/playlists?limit=50');
+      (j && j.items || []).forEach(p => p && addOpt('pl:' + p.id, p.name));
+    } catch (e) { flash(e.message); }
+    const want = store.get('src', 'liked');
+    plSelect.value = [...plSelect.options].some(o => o.value === want) ? want : 'liked';
+    await this.selectSource(plSelect.value);
+    await sync();
+    clearInterval(pollTimer); pollTimer = setInterval(() => { if (!document.hidden) sync(); }, 2000);
+  },
+  async selectSource(v) {
+    S.src = v; store.set('src', v); S.tracks = []; S.listNote = 'Caricamento…'; S.notePlay = false; renderList();
+    try {
+      if (v === 'liked') {
+        S.srcUri = null;
+        const j = await api('/me/tracks?limit=50');
+        S.tracks = (j && j.items || []).map(x => mapTrack(x.track)).filter(Boolean);
+      } else {
+        const id = v.slice(3); S.srcUri = 'spotify:playlist:' + id;
+        const j = await api('/playlists/' + id + '/items?limit=100');
+        S.tracks = (j && j.items || []).map(x => mapTrack(x.item || x.track)).filter(Boolean);
+      }
+      S.listNote = S.tracks.length ? '' : 'Nessun brano da mostrare.';
+    } catch (e) {
+      S.tracks = [];
+      if (v === 'liked') S.listNote = e.message;
+      else { S.listNote = 'Spotify mostra i brani solo delle playlist che hai creato o in cui collabori. Questa puoi comunque avviarla.'; S.notePlay = true; }
+    }
+    S.sel = 0; renderList();
+  },
+  async cmd(method, path, body) {
+    try { await api(path, { method, body }); } catch (e) { flash(e.message); }
+    setTimeout(sync, 450);
+  },
+  playIndex(i) {
+    const t = S.tracks[i]; if (!t) return;
+    S.track = t; S.pos = 0; S.playing = true; S.sel = i; onTrackChange();
+    const body = S.srcUri ? { context_uri: S.srcUri, offset: { uri: t.uri } } : { uris: S.tracks.map(x => x.uri), offset: { position: i } };
+    this.cmd('PUT', '/me/player/play', body);
+  },
+  play() { S.playing = true; this.cmd('PUT', '/me/player/play'); },
+  pause() { S.playing = false; this.cmd('PUT', '/me/player/pause'); },
+  toggle() { S.playing ? this.pause() : this.play(); },
+  async stop() { S.playing = false; S.pos = 0; try { await api('/me/player/pause', { method: 'PUT' }); await api('/me/player/seek?position_ms=0', { method: 'PUT' }); } catch (e) { flash(e.message); } setTimeout(sync, 450); },
+  next() { this.cmd('POST', '/me/player/next'); },
+  prev() { this.cmd('POST', '/me/player/previous'); },
+  seek(ms) { S.pos = ms; this.cmd('PUT', '/me/player/seek?position_ms=' + Math.round(ms)); },
+  volume(v) { clearTimeout(volTimer); volTimer = setTimeout(() => this.cmd('PUT', '/me/player/volume?volume_percent=' + v), 250); },
+  setShuffle(b) { S.shuffle = b; renderToggles(); this.cmd('PUT', '/me/player/shuffle?state=' + b); },
+  setRepeat(r) { S.repeat = r; renderToggles(); this.cmd('PUT', '/me/player/repeat?state=' + r); },
+  ended() {}
+};
+async function sync() {
+  if (S.mode !== 'live' || syncing) return;
+  syncing = true;
+  try {
+    const p = await api('/me/player?additional_types=episode');
+    if (!p || !p.device) {
+      S.device = null; S.playing = false;
+      if ($('#devs').childElementCount === 0) loadDevices();
+    } else {
+      S.device = p.device; S.playing = !!p.is_playing;
+      S.shuffle = !!p.shuffle_state; S.repeat = p.repeat_state || 'off';
+      if (p.device.volume_percent != null && !volDrag) S.vol = p.device.volume_percent;
+      const t = mapTrack(p.item);
+      if (t) {
+        if (!S.track || S.track.uri !== t.uri) { S.track = t; onTrackChange(); }
+        if (!seeking) S.pos = p.progress_ms || 0;
+      }
+    }
+    renderToggles(); renderVol(); renderInfo(); renderStatus();
+  } catch (e) { flash(e.message); }
+  finally { syncing = false; }
+}
+async function loadDevices() {
+  const ul = $('#devs'); ul.textContent = '';
+  try {
+    const j = await api('/me/player/devices');
+    const ds = (j && j.devices) || [];
+    if (!ds.length) { const li = document.createElement('li'); li.textContent = 'Nessuno: apri l\'app Spotify su un dispositivo'; ul.appendChild(li); return; }
+    for (const d of ds) {
+      const li = document.createElement('li');
+      const s = document.createElement('span'); s.textContent = (d.is_active ? '▶ ' : '') + d.name + ' · ' + d.type;
+      const b = document.createElement('button'); b.className = 'bevel pbtn'; b.textContent = d.is_active ? 'Attivo' : 'Usa'; b.disabled = d.is_active;
+      b.addEventListener('click', () => Live.cmd('PUT', '/me/player', { device_ids: [d.id], play: true }).then(loadDevices));
+      li.append(s, b); ul.appendChild(li);
+    }
+  } catch (e) { flash(e.message); }
+}
+$('#b-devs').addEventListener('click', loadDevices);
+
+/* ---------------- Android (comandi multimediali) ---------------- */
+const NATIVE = window.FerriteAndroid || null;
+let natQueueKey = '', natBands = null, natBandsAt = 0;
+function nat(action, arg) { try { NATIVE.command(action, arg == null ? '' : String(arg)); } catch (e) {} }
+function syncNative() {
+  let st; try { st = JSON.parse(NATIVE.getState()); } catch (e) { return; }
+  const prev = S.nat; S.nat = st;
+  if (st.access && st.title) {
+    const t = { uri: 'n:' + st.pkg + ':' + st.title + '|' + (st.artist || ''), title: st.title, artist: st.artist || '', dur: st.dur > 0 ? st.dur : 0 };
+    if (!S.track || S.track.uri !== t.uri) { S.track = t; onTrackChange(); loadQueue(); }
+    else S.track.dur = t.dur;
+    if (!seeking) S.pos = st.pos || 0;
+    S.playing = !!st.playing;
+  } else if (S.track) { S.track = null; S.playing = false; S.pos = 0; onTrackChange(); }
+  if (!volDrag && typeof st.vol === 'number') S.vol = st.vol;
+  renderVol(); renderInfo(); renderNowPlaying();
+  if (!prev || prev.access !== st.access || prev.app !== st.app || prev.audioPerm !== st.audioPerm || prev.visual !== st.visual) renderPanel();
+}
+function loadQueue() {
+  let q = []; try { q = JSON.parse(NATIVE.getQueue()); } catch (e) {}
+  const key = JSON.stringify(q);
+  if (key === natQueueKey && S.tracks.length) { markList(false); return; }
+  natQueueKey = key;
+  S.tracks = q.map(x => ({ uri: 'q:' + x.id, qid: x.id, title: x.title || '', artist: x.artist || '', dur: 0, active: !!x.active }));
+  S.notePlay = false;
+  if (!S.nat || !S.nat.access) S.listNote = 'Consenti l\'accesso alle notifiche nella finestra Collegamento.';
+  else if (!S.nat.title) S.listNote = 'Nessun player attivo: avvia un brano su Spotify.';
+  else S.listNote = S.tracks.length ? '' : (S.nat.app || 'Il player') + ' non condivide la coda con le altre app: scegli i brani da lì, qui li vedi e li comandi.';
+  renderList();
+}
+function nativeCustom(word, label) {
+  const a = ((S.nat && S.nat.actions) || []).find(x => x.toLowerCase().includes(word));
+  if (a) { nat('custom', a.split('|')[0]); flash(label + ' inviato a ' + (S.nat.app || 'il player')); }
+  else flash(label + ': non disponibile da ' + ((S.nat && S.nat.app) || 'questo player'));
+}
+function nativeBands(now) {
+  if (now - natBandsAt < 40) return natBands;
+  natBandsAt = now;
+  let txt = ''; try { txt = NATIVE.getBands(); } catch (e) {}
+  natBands = txt ? txt.split(',').map(Number) : null;
+  return natBands;
+}
+const Native = {
+  load() {
+    S.mode = 'native'; S.src = 'native'; S.track = null; S.playing = false; S.pos = 0;
+    plSelect.textContent = ''; addOpt('native', 'Coda del player'); plSelect.disabled = true;
+    W('sp').hidden = false; renderLinks(); window.ferriteShared();
+    S.tracks = []; S.listNote = 'Caricamento…'; renderList();
+    syncNative(); loadQueue();
+    setInterval(() => { if (!document.hidden) syncNative(); }, 500);
+    setInterval(() => { if (!document.hidden) loadQueue(); }, 3000);
+  },
+  playIndex(i) { const t = S.tracks[i]; if (t) { S.sel = i; nat('queue', t.qid); setTimeout(loadQueue, 600); } },
+  play() { S.playing = true; nat('play'); },
+  pause() { S.playing = false; nat('pause'); },
+  toggle() { S.playing ? this.pause() : this.play(); },
+  stop() { S.playing = false; S.pos = 0; nat('stop'); },
+  next() { nat('next'); },
+  prev() { nat('prev'); },
+  seek(ms) { S.pos = ms; nat('seek', Math.round(ms)); },
+  volume(v) { nat('volume', v); },
+  setShuffle() { nativeCustom('shuffle', 'Casuale'); },
+  setRepeat() { nativeCustom('repeat', 'Ripeti'); },
+  ended() {}
+};
+/* raccolta: copertina, azioni, ricerca, link salvati */
+const KINDS = { playlist: 'Playlist', album: 'Album', artist: 'Artista', track: 'Brano', episode: 'Episodio', show: 'Podcast' };
+let links = store.get('links', []);
+let artFor = '', actsKey = '';
+function parseSpotify(text) {
+  const m = String(text).match(/open\.spotify\.com\/(?:intl-[a-zA-Z-]+\/)?(playlist|album|artist|track|episode|show)\/([A-Za-z0-9]+)/)
+    || String(text).match(/spotify:(playlist|album|artist|track|episode|show):([A-Za-z0-9]+)/);
+  return m ? { kind: m[1], uri: 'spotify:' + m[1] + ':' + m[2], url: 'https://open.spotify.com/' + m[1] + '/' + m[2] } : null;
+}
+function firstUrl(text) { const m = String(text).match(/https?:\/\/\S+/); return m ? m[0].replace(/[).,]+$/, '') : ''; }
+function saveLinks() { store.set('links', links); renderLinks(); }
+function addLink(text, subject) {
+  const parsed = parseSpotify(text);
+  const raw = firstUrl(text);
+  if (!parsed && !/spotify/i.test(raw)) { flash('Non sembra un link Spotify'); return; }
+  const id = 'l' + Date.now().toString(36);
+  const title = (subject || '').replace(/\s*(\||-)\s*Spotify\s*$/i, '').trim();
+  if (parsed && links.some(l => l.uri === parsed.uri)) { flash('Già nella raccolta'); return; }
+  links.unshift({ id, uri: parsed ? parsed.uri : '', url: parsed ? parsed.url : raw, kind: parsed ? parsed.kind : '', title, thumb: '', pending: true });
+  saveLinks();
+  flash('Aggiunto alla raccolta');
+  try { NATIVE.fetchMeta(parsed ? parsed.url : raw, id); } catch (e) {}
+}
+window.ferriteMeta = json => {
+  let r; try { r = JSON.parse(json); } catch (e) { return; }
+  const l = links.find(x => x.id === r.id); if (!l) return;
+  l.pending = false;
+  if (r.url) { const p = parseSpotify(r.url); if (p) { l.uri = p.uri; l.url = p.url; l.kind = p.kind; } }
+  if (r.title) l.title = r.title;
+  if (r.thumb) l.thumb = r.thumb;
+  if (!l.uri) { links = links.filter(x => x !== l); flash('Link Spotify non riconosciuto'); }
+  else if (links.some(x => x !== l && x.uri === l.uri)) { links = links.filter(x => x !== l); flash('Già nella raccolta'); }
+  saveLinks();
+};
+window.ferriteShared = () => {
+  let s = ''; try { s = NATIVE.takeShared(); } catch (e) {}
+  if (!s) return;
+  try { const o = JSON.parse(s); addLink(o.text, o.subject); } catch (e) {}
+  const w = W('sp'); toggleShade(w, false); focusWin(w);
+};
+function renderLinks() {
+  const ul = $('#sp-list'); ul.textContent = '';
+  if (!links.length) {
+    const li = document.createElement('li'); li.className = 'note';
+    li.textContent = 'Ancora niente. In Spotify apri una playlist o un album, tocca Condividi e scegli Ferrite.';
+    ul.appendChild(li); return;
+  }
+  links.forEach(l => {
+    const li = document.createElement('li'); li.dataset.id = l.id; li.tabIndex = 0;
+    let img;
+    if (l.thumb) { img = document.createElement('img'); img.src = l.thumb; img.alt = ''; img.loading = 'lazy'; }
+    else { img = document.createElement('span'); img.className = 'ph'; }
+    const t = document.createElement('span'); t.className = 't';
+    const k = document.createElement('span'); k.className = 'k'; k.textContent = l.pending ? 'Recupero…' : (KINDS[l.kind] || 'Spotify');
+    t.append(k, document.createTextNode(l.title || KINDS[l.kind] || l.url));
+    const x = document.createElement('button'); x.className = 'bevel tbtn x'; x.type = 'button'; x.textContent = '✕'; x.setAttribute('aria-label', 'Rimuovi');
+    li.append(img, t, x);
+    ul.appendChild(li);
+  });
+}
+$('#sp-list').addEventListener('click', e => {
+  const li = e.target.closest('li[data-id]'); if (!li) return;
+  const l = links.find(x => x.id === li.dataset.id); if (!l) return;
+  if (e.target.closest('.x')) { links = links.filter(x => x !== l); saveLinks(); return; }
+  if (!l.uri) { flash('Link non ancora pronto'); return; }
+  nat('playUri', l.uri); flash('Avvio: ' + (l.title || KINDS[l.kind]));
+});
+$('#sp-list').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.closest('li[data-id]')) e.target.click(); });
+$('#sp-search').addEventListener('submit', e => {
+  e.preventDefault();
+  const q = $('#sp-q').value.trim(); if (!q) return;
+  nat('search', q); flash('Cerco "' + q + '" su Spotify'); $('#sp-q').blur();
+});
+$('#sp-add').addEventListener('submit', e => {
+  e.preventDefault();
+  const v = $('#sp-link').value.trim(); if (!v) return;
+  addLink(v, ''); $('#sp-link').value = '';
+});
+function renderNowPlaying() {
+  const n = S.nat || {};
+  $('#np-title').textContent = n.title || (n.access ? 'Nessun brano' : 'Accesso alle notifiche da attivare');
+  $('#np-artist').textContent = n.artist || '';
+  $('#np-album').textContent = n.album || '';
+  const key = (n.pkg || '') + '|' + (n.title || '') + '|' + (n.album || '');
+  if (key !== artFor || $('#np-art').hidden) {
+    let a = ''; try { a = n.title ? NATIVE.getArt() : ''; } catch (e) {}
+    if (a) { $('#np-art').src = a; artFor = key; }
+    $('#np-art').hidden = !a; $('#np-noart').hidden = !!a;
+  }
+  const acts = (n.actions || []);
+  const ak = acts.join(';');
+  if (ak !== actsKey) {
+    actsKey = ak;
+    const box = $('#sp-acts'); box.textContent = '';
+    acts.forEach(a => {
+      const [id, name] = a.split('|');
+      const b = document.createElement('button'); b.className = 'bevel chip'; b.type = 'button';
+      b.textContent = name || id.split('.').pop();
+      b.addEventListener('click', () => { nat('custom', id); flash(b.textContent); });
+      box.appendChild(b);
+    });
+  }
+}
+
+$('#b-notif').addEventListener('click', () => nat('notifSettings'));
+$('#b-appset').addEventListener('click', () => nat('appSettings'));
+$('#b-audio').addEventListener('click', () => nat('audioPerm'));
+$('#b-open').addEventListener('click', () => nat('openPlayer'));
+
+/* ---------------- pannello collegamento ---------------- */
+function renderStatus() {
+  const st = $('#status');
+  if (S.msg && performance.now() < S.msg.until) return;
+  if (S.mode === 'native') {
+    const n = S.nat || {};
+    st.textContent = !n.access ? 'Serve l\'accesso alle notifiche' : n.app ? 'Collegato a ' + n.app : 'In attesa di un player: avvia Spotify';
+    return;
+  }
+  if (S.mode === 'demo') st.textContent = EMBEDDED ? 'Modalità demo · anteprima' : 'Modalità demo · non collegato';
+  else st.textContent = S.device ? 'Collegato · ' + S.device.name : 'Collegato · nessun dispositivo attivo';
+}
+function renderPanel() {
+  if (S.mode === 'native') {
+    const n = S.nat || {};
+    $('#native-sect').hidden = false;
+    ['#embedded-note', '#live-form', '#dev-sect', '#api-help'].forEach(q => { $(q).hidden = true; });
+    $('#b-notif').textContent = n.access ? 'Accesso attivo ✓' : 'Consenti accesso';
+    $('#b-audio').textContent = n.visual ? 'Analizzatore reale ✓' : n.audioPerm ? 'Analizzatore non disponibile' : 'Analizzatore reale';
+    $('#b-audio').disabled = !!n.audioPerm;
+    $('#b-open').textContent = 'Apri ' + (n.app || 'Spotify');
+    renderStatus();
+    return;
+  }
+  $('#embedded-note').hidden = !EMBEDDED;
+  $('#live-form').hidden = EMBEDDED;
+  $('#redir').textContent = redirectUri();
+  $('#cid').value = store.get('cid', '');
+  const live = S.mode === 'live';
+  $('#b-login').hidden = live; $('#b-logout').hidden = !live;
+  $('#cid').disabled = live;
+  $('#dev-sect').hidden = !live;
+  renderStatus();
+}
+$('#b-login').addEventListener('click', () => login().catch(e => flash(e.message)));
+$('#b-logout').addEventListener('click', () => {
+  clearInterval(pollTimer); tok = null; store.del('tok');
+  S.track = null; S.device = null; Demo.load(); renderInfo(); renderToggles(); renderPanel();
+  flash('Spotify scollegato');
+});
+$('#b-copy').addEventListener('click', () => {
+  const txt = redirectUri();
+  const sel = () => { const r = document.createRange(); r.selectNodeContents($('#redir')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
+  try {
+    navigator.clipboard.writeText(txt).then(() => flash('Redirect URI copiato'), () => { sel(); flash('Selezionato: copialo a mano'); });
+  } catch (e) { sel(); flash('Selezionato: copialo a mano'); }
+});
+
+/* ---------------- comandi ---------------- */
+const eng = () => S.mode === 'native' ? Native : S.mode === 'live' ? Live : Demo;
+$('#b-play').addEventListener('click', () => { if (!S.track && S.tracks.length) eng().playIndex(S.sel || 0); else eng().play(); });
+$('#b-pause').addEventListener('click', () => eng().toggle());
+$('#b-stop').addEventListener('click', () => eng().stop());
+$('#b-next').addEventListener('click', () => eng().next(true));
+$('#b-prev').addEventListener('click', () => eng().prev());
+$('#b-eject').addEventListener('click', () => {
+  if (S.mode === 'native') { nat('openPlayer'); return; }
+  const p = W('pl'); toggleShade(p, false); focusWin(p);
+  plSelect.disabled ? list.focus() : plSelect.focus();
+});
+$('#b-shuf').addEventListener('click', () => eng().setShuffle(!S.shuffle));
+$('#b-rep').addEventListener('click', () => eng().setRepeat({ off: 'context', context: 'track', track: 'off' }[S.repeat]));
+$('#clock').addEventListener('click', () => { S.remaining = !S.remaining; store.set('remaining', S.remaining); });
+elSeek.addEventListener('pointerdown', () => { seeking = true; });
+elSeek.addEventListener('input', () => {
+  seeking = true; setP(elSeek);
+  if (S.track) { S.msg = { text: 'Vai a ' + fmt(elSeek.value / 1000 * S.track.dur) + ' / ' + fmt(S.track.dur), until: performance.now() + 900 }; }
+});
+elSeek.addEventListener('change', () => {
+  if (S.track) eng().seek(elSeek.value / 1000 * S.track.dur);
+  seeking = false;
+});
+elVol.addEventListener('pointerdown', () => { volDrag = true; });
+elVol.addEventListener('input', () => {
+  S.vol = +elVol.value; setP(elVol); $('#vol-out').textContent = S.vol;
+  S.msg = { text: 'Volume ' + S.vol + '%', until: performance.now() + 900 };
+  eng().volume(S.vol);
+});
+elVol.addEventListener('change', () => { volDrag = false; });
+addEventListener('pointerup', () => { volDrag = false; });
+addEventListener('keydown', e => {
+  if (e.target.closest('input,select,textarea') || e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key;
+  if (k === ' ' && !e.target.closest('button')) { e.preventDefault(); eng().toggle(); }
+  else if (k === 'ArrowRight' || k === 'ArrowLeft') { if (S.track) { e.preventDefault(); eng().seek(Math.max(0, Math.min(S.track.dur, S.pos + (k === 'ArrowRight' ? 5000 : -5000)))); } }
+  else if ((k === 'ArrowUp' || k === 'ArrowDown') && e.target === document.body) { e.preventDefault(); S.vol = Math.max(0, Math.min(100, S.vol + (k === 'ArrowUp' ? 5 : -5))); renderVol(); eng().volume(S.vol); }
+  else if (k === 'n' || k === 'N') eng().next(true);
+  else if (k === 'p' || k === 'P') eng().prev();
+});
+document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
+
+/* ---------------- ciclo ---------------- */
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(100, now - last); last = now;
+  if (S.playing && S.track && !seeking) {
+    S.pos = S.track.dur ? Math.min(S.track.dur, S.pos + dt) : S.pos + dt;
+    if (S.mode === 'demo' && S.pos >= S.track.dur) Demo.ended();
+  }
+  renderTime(now); renderSeek(); renderMarquee(dt); drawVis(now, dt);
+  if (S.msg && now > S.msg.until) { S.msg = null; renderStatus(); }
+  requestAnimationFrame(frame);
+}
+
+/* ---------------- avvio ---------------- */
+async function boot() {
+  setSkin(store.get('skin', 'titanio'));
+  const sh = store.get('shaded', {});
+  wins.forEach(w => w.classList.toggle('shaded', !!sh[w.dataset.win]));
+  applyLayout();
+  focusWin(W('main'));
+  if (store.get('mini', false)) setMini(true);
+  fitCanvases();
+  renderToggles(); renderVol();
+  if (NATIVE) { Native.load(); renderInfo(); renderPanel(); requestAnimationFrame(frame); return; }
+  if (!EMBEDDED) await handleRedirect();
+  if (!EMBEDDED && tok && store.get('cid', '')) {
+    renderPanel();
+    try { await Live.load(); } catch (e) { flash(e.message); Demo.load(); }
+  } else Demo.load();
+  renderInfo(); renderPanel();
+  requestAnimationFrame(frame);
+}
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { marqText = null; if (!store.get('layout', null)) applyLayout(); fitDesk(); fitCanvases(); });
+boot();
+})();
+</script>
+
+<script>if ("serviceWorker" in navigator && location.protocol === "https:" && !window.FerriteAndroid) navigator.serviceWorker.register("sw.js").catch(function(){});</script>
+</html>
