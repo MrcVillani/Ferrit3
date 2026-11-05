@@ -8,6 +8,11 @@ on:
 permissions:
   contents: write
 
+# Una build alla volta: due build in parallelo genererebbero due chiavi di firma diverse.
+concurrency:
+  group: build-ferrite
+  cancel-in-progress: false
+
 env:
   # Indirizzo del sito: GitHub Pages del repo, oppure la variabile SITE_URL se la imposti (es. un dominio tuo).
   SITE_URL: ${{ vars.SITE_URL || format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}
