@@ -22,3 +22,7 @@ jobs:
         run: |
           gh api -X POST "repos/${{ github.repository }}/pages/deployments/$STUCK/cancel" && echo "Annullata" || echo "Niente da annullare"
           gh api "repos/${{ github.repository }}/pages/deployments/$STUCK" || true
+          echo "--- stato del sito"
+          gh api "repos/${{ github.repository }}/pages" || true
+          echo "--- ultime build"
+          gh api "repos/${{ github.repository }}/pages/builds?per_page=5" --jq '.[] | "\(.commit) \(.status) \(.error.message // "")"' || true
