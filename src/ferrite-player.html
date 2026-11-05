@@ -320,7 +320,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:10px;border:1px solid var(
     </header>
     <div class="wbody">
       <div class="screen"><canvas id="vis" aria-label="Analizzatore di spettro" title="Clic: cambia modalità"></canvas></div>
-      <div class="foot"><span id="vis-mode">SPETTRO · 32 BANDE</span><span>clic per cambiare · simulato</span></div>
+      <div class="foot"><span id="vis-mode">SPETTRO · 32 BANDE</span><span>clic per cambiare · <span id="vis-src">simulato</span></span></div>
     </div>
   </section>
 
@@ -349,7 +349,23 @@ input[type=range]::-moz-range-thumb{width:22px;height:10px;border:1px solid var(
           <div class="row" style="justify-content:space-between"><span class="lbl">Dispositivi</span><button class="bevel pbtn" id="b-devs">Aggiorna</button></div>
           <ul class="devs" id="devs"></ul>
         </div>
-        <div class="box">
+        <div id="native-sect" class="sect" hidden>
+          <div class="row">
+            <button class="bevel pbtn" id="b-notif">Consenti accesso</button>
+            <button class="bevel pbtn" id="b-audio">Analizzatore reale</button>
+            <button class="bevel pbtn" id="b-open">Apri Spotify</button>
+          </div>
+          <div class="box">
+            Ferrite comanda il player in riproduzione tramite i controlli multimediali di Android, senza account sviluppatore.
+            <ol>
+              <li>Premi <b>Consenti accesso</b> e attiva Ferrite in “Accesso alle notifiche”.</li>
+              <li>Se l'interruttore è grigio (Android 13 e successivi): premi <button class="bevel pbtn" id="b-appset" style="padding:1px 8px">Info app</button>, poi menu ⋮ → <b>Consenti impostazioni con restrizioni</b>, e ripeti il punto 1.</li>
+              <li>Fai partire un brano su Spotify: Ferrite lo mostra e lo comanda.</li>
+            </ol>
+            <b>Analizzatore reale</b> chiede il permesso che Android chiama “microfono”: serve a leggere il segnale in uscita per disegnare le barre, non registra e non salva niente.
+          </div>
+        </div>
+        <div class="box" id="api-help">
           Come collegarlo:
           <ol>
             <li>Crea un'app su <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener">developer.spotify.com</a> (serve Premium, massimo 5 utenti).</li>
@@ -574,6 +590,11 @@ function renderInfo() {
   if (S.mode === 'demo') {
     add('320<span class="u">kbps</span>'); add('44<span class="u">kHz</span>'); add('STEREO');
     add('<span class="tag">DEMO</span>');
+  } else if (S.mode === 'native') {
+    const n = S.nat || {};
+    add('<span class="tag">' + (n.access ? 'ANDROID' : 'NESSUN ACCESSO') + '</span>');
+    const d = add(''); d.className = 'devname';
+    d.textContent = n.app ? n.app.toUpperCase() + (n.remote ? ' · REMOTO' : '') : (n.access ? 'NESSUN PLAYER' : '');
   } else {
     add('<span class="tag">SPOTIFY</span>');
     const d = add(''); d.className = 'devname';
@@ -588,9 +609,9 @@ const SEP = '   ***   ';
 function marqueeLabel() {
   if (S.msg && performance.now() < S.msg.until) return S.msg.text.toUpperCase();
   const t = S.track;
-  if (!t) return S.mode === 'live' ? 'FERRITE · IN ATTESA DI SPOTIFY' : 'FERRITE PLAYER';
+  if (!t) return S.mode === 'live' || S.mode === 'native' ? 'FERRITE · IN ATTESA DI SPOTIFY' : 'FERRITE PLAYER';
   const n = S.cur >= 0 ? (S.cur + 1) + '. ' : '';
-  return n + t.artist + ' - ' + t.title + ' (' + fmt(t.dur) + ')';
+  return n + (t.artist ? t.artist + ' - ' : '') + t.title + (t.dur ? ' (' + fmt(t.dur) + ')' : '');
 }
 function renderMarquee(dt) {
   const txt = marqueeLabel();
@@ -625,7 +646,18 @@ function fitCanvas(c) {
 const cv = $('#vis'), mcv = $('#mini-vis');
 function fitCanvases() { fitCanvas(cv); fitCanvas(mcv); }
 if ('ResizeObserver' in window) new ResizeObserver(fitCanvases).observe(cv);
+let visReal = false;
 function updateLevels(now, dt) {
+  const real = S.mode === 'native' ? nativeBands(now) : null;
+  if (!!real !== visReal) { visReal = !!real; $('#vis-src').textContent = visReal ? 'reale' : 'simulato'; }
+  if (real && real.length === NB) {
+    for (let i = 0; i < NB; i++) {
+      const v = Math.max(0, Math.min(1, real[i] || 0));
+      lv[i] = v > lv[i] ? v : Math.max(v, lv[i] - dt * 0.0022);
+      if (lv[i] >= pk[i]) pk[i] = lv[i]; else pk[i] = Math.max(0, pk[i] - dt * 0.00045);
+    }
+    return;
+  }
   const t = now / 1000, on = S.playing && S.track;
   const bpm = 84 + (seed % 56);
   const beat = Math.pow(Math.max(0, Math.sin(t * Math.PI * 2 * bpm / 60)), 6);
@@ -724,16 +756,16 @@ function renderList() {
     const li = document.createElement('li'); li.dataset.i = i;
     const n = document.createElement('span'); n.className = 'n'; n.textContent = (i + 1) + '.';
     const ti = document.createElement('span'); ti.className = 't'; ti.textContent = t.artist ? t.artist + ' - ' + t.title : t.title;
-    const d = document.createElement('span'); d.className = 'd'; d.textContent = fmt(t.dur);
+    const d = document.createElement('span'); d.className = 'd'; d.textContent = t.dur ? fmt(t.dur) : '';
     li.append(n, ti, d);
     list.appendChild(li);
   });
   $('#pl-count').textContent = S.tracks.length ? S.tracks.length + ' brani' : '';
-  $('#pl-total').textContent = S.tracks.length ? fmtLong(total) : '';
+  $('#pl-total').textContent = S.tracks.length && total ? fmtLong(total) : '';
   markList(false);
 }
 function markList(scroll) {
-  S.cur = S.track ? S.tracks.findIndex(t => t.uri === S.track.uri) : -1;
+  S.cur = S.mode === 'native' ? S.tracks.findIndex(t => t.active) : S.track ? S.tracks.findIndex(t => t.uri === S.track.uri) : -1;
   $$('#pl-list li[data-i]').forEach(li => {
     const i = +li.dataset.i;
     li.classList.toggle('cur', i === S.cur);
@@ -957,14 +989,99 @@ async function loadDevices() {
 }
 $('#b-devs').addEventListener('click', loadDevices);
 
+/* ---------------- Android (comandi multimediali) ---------------- */
+const NATIVE = window.FerriteAndroid || null;
+let natQueueKey = '', natBands = null, natBandsAt = 0;
+function nat(action, arg) { try { NATIVE.command(action, arg == null ? '' : String(arg)); } catch (e) {} }
+function syncNative() {
+  let st; try { st = JSON.parse(NATIVE.getState()); } catch (e) { return; }
+  const prev = S.nat; S.nat = st;
+  if (st.access && st.title) {
+    const t = { uri: 'n:' + st.pkg + ':' + st.title + '|' + (st.artist || ''), title: st.title, artist: st.artist || '', dur: st.dur > 0 ? st.dur : 0 };
+    if (!S.track || S.track.uri !== t.uri) { S.track = t; onTrackChange(); loadQueue(); }
+    else S.track.dur = t.dur;
+    if (!seeking) S.pos = st.pos || 0;
+    S.playing = !!st.playing;
+  } else if (S.track) { S.track = null; S.playing = false; S.pos = 0; onTrackChange(); }
+  if (!volDrag && typeof st.vol === 'number') S.vol = st.vol;
+  renderVol(); renderInfo();
+  if (!prev || prev.access !== st.access || prev.app !== st.app || prev.audioPerm !== st.audioPerm || prev.visual !== st.visual) renderPanel();
+}
+function loadQueue() {
+  let q = []; try { q = JSON.parse(NATIVE.getQueue()); } catch (e) {}
+  const key = JSON.stringify(q);
+  if (key === natQueueKey && S.tracks.length) { markList(false); return; }
+  natQueueKey = key;
+  S.tracks = q.map(x => ({ uri: 'q:' + x.id, qid: x.id, title: x.title || '', artist: x.artist || '', dur: 0, active: !!x.active }));
+  S.notePlay = false;
+  if (!S.nat || !S.nat.access) S.listNote = 'Consenti l\'accesso alle notifiche nella finestra Collegamento.';
+  else if (!S.nat.title) S.listNote = 'Nessun player attivo: avvia un brano su Spotify.';
+  else S.listNote = S.tracks.length ? '' : (S.nat.app || 'Il player') + ' non condivide la coda con le altre app: scegli i brani da lì, qui li vedi e li comandi.';
+  renderList();
+}
+function nativeCustom(word, label) {
+  const a = ((S.nat && S.nat.actions) || []).find(x => x.toLowerCase().includes(word));
+  if (a) { nat('custom', a.split('|')[0]); flash(label + ' inviato a ' + (S.nat.app || 'il player')); }
+  else flash(label + ': non disponibile da ' + ((S.nat && S.nat.app) || 'questo player'));
+}
+function nativeBands(now) {
+  if (now - natBandsAt < 40) return natBands;
+  natBandsAt = now;
+  let txt = ''; try { txt = NATIVE.getBands(); } catch (e) {}
+  natBands = txt ? txt.split(',').map(Number) : null;
+  return natBands;
+}
+const Native = {
+  load() {
+    S.mode = 'native'; S.src = 'native'; S.track = null; S.playing = false; S.pos = 0;
+    plSelect.textContent = ''; addOpt('native', 'Coda del player'); plSelect.disabled = true;
+    S.tracks = []; S.listNote = 'Caricamento…'; renderList();
+    syncNative(); loadQueue();
+    setInterval(() => { if (!document.hidden) syncNative(); }, 500);
+    setInterval(() => { if (!document.hidden) loadQueue(); }, 3000);
+  },
+  playIndex(i) { const t = S.tracks[i]; if (t) { S.sel = i; nat('queue', t.qid); setTimeout(loadQueue, 600); } },
+  play() { S.playing = true; nat('play'); },
+  pause() { S.playing = false; nat('pause'); },
+  toggle() { S.playing ? this.pause() : this.play(); },
+  stop() { S.playing = false; S.pos = 0; nat('stop'); },
+  next() { nat('next'); },
+  prev() { nat('prev'); },
+  seek(ms) { S.pos = ms; nat('seek', Math.round(ms)); },
+  volume(v) { nat('volume', v); },
+  setShuffle() { nativeCustom('shuffle', 'Casuale'); },
+  setRepeat() { nativeCustom('repeat', 'Ripeti'); },
+  ended() {}
+};
+$('#b-notif').addEventListener('click', () => nat('notifSettings'));
+$('#b-appset').addEventListener('click', () => nat('appSettings'));
+$('#b-audio').addEventListener('click', () => nat('audioPerm'));
+$('#b-open').addEventListener('click', () => nat('openPlayer'));
+
 /* ---------------- pannello collegamento ---------------- */
 function renderStatus() {
   const st = $('#status');
   if (S.msg && performance.now() < S.msg.until) return;
+  if (S.mode === 'native') {
+    const n = S.nat || {};
+    st.textContent = !n.access ? 'Serve l\'accesso alle notifiche' : n.app ? 'Collegato a ' + n.app : 'In attesa di un player: avvia Spotify';
+    return;
+  }
   if (S.mode === 'demo') st.textContent = EMBEDDED ? 'Modalità demo · anteprima' : 'Modalità demo · non collegato';
   else st.textContent = S.device ? 'Collegato · ' + S.device.name : 'Collegato · nessun dispositivo attivo';
 }
 function renderPanel() {
+  if (S.mode === 'native') {
+    const n = S.nat || {};
+    $('#native-sect').hidden = false;
+    ['#embedded-note', '#live-form', '#dev-sect', '#api-help'].forEach(q => { $(q).hidden = true; });
+    $('#b-notif').textContent = n.access ? 'Accesso attivo ✓' : 'Consenti accesso';
+    $('#b-audio').textContent = n.visual ? 'Analizzatore reale ✓' : n.audioPerm ? 'Analizzatore non disponibile' : 'Analizzatore reale';
+    $('#b-audio').disabled = !!n.audioPerm;
+    $('#b-open').textContent = 'Apri ' + (n.app || 'Spotify');
+    renderStatus();
+    return;
+  }
   $('#embedded-note').hidden = !EMBEDDED;
   $('#live-form').hidden = EMBEDDED;
   $('#redir').textContent = redirectUri();
@@ -990,13 +1107,14 @@ $('#b-copy').addEventListener('click', () => {
 });
 
 /* ---------------- comandi ---------------- */
-const eng = () => S.mode === 'live' ? Live : Demo;
+const eng = () => S.mode === 'native' ? Native : S.mode === 'live' ? Live : Demo;
 $('#b-play').addEventListener('click', () => { if (!S.track && S.tracks.length) eng().playIndex(S.sel || 0); else eng().play(); });
 $('#b-pause').addEventListener('click', () => eng().toggle());
 $('#b-stop').addEventListener('click', () => eng().stop());
 $('#b-next').addEventListener('click', () => eng().next(true));
 $('#b-prev').addEventListener('click', () => eng().prev());
 $('#b-eject').addEventListener('click', () => {
+  if (S.mode === 'native') { nat('openPlayer'); return; }
   const p = W('pl'); toggleShade(p, false); focusWin(p);
   plSelect.disabled ? list.focus() : plSelect.focus();
 });
@@ -1036,7 +1154,7 @@ let last = performance.now();
 function frame(now) {
   const dt = Math.min(100, now - last); last = now;
   if (S.playing && S.track && !seeking) {
-    S.pos = Math.min(S.track.dur, S.pos + dt);
+    S.pos = S.track.dur ? Math.min(S.track.dur, S.pos + dt) : S.pos + dt;
     if (S.mode === 'demo' && S.pos >= S.track.dur) Demo.ended();
   }
   renderTime(now); renderSeek(); renderMarquee(dt); drawVis(now, dt);
@@ -1054,6 +1172,7 @@ async function boot() {
   if (store.get('mini', false)) setMini(true);
   fitCanvases();
   renderToggles(); renderVol();
+  if (NATIVE) { Native.load(); renderInfo(); renderPanel(); requestAnimationFrame(frame); return; }
   if (!EMBEDDED) await handleRedirect();
   if (!EMBEDDED && tok && store.get('cid', '')) {
     renderPanel();

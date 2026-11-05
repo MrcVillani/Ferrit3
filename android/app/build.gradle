@@ -1,9 +1,6 @@
-// App Android "Trusted Web Activity": apre il sito Ferrite pubblicato a schermo intero, usando Chrome.
-// L'indirizzo del sito arriva da -PsiteUrl=https://tuosito.netlify.app (lo passa il workflow).
+// App Android nativa: l'interfaccia Ferrite (cartella web/) in una WebView,
+// collegata ai comandi multimediali di Android. Nessuna libreria esterna.
 plugins { id 'com.android.application' }
-
-def siteUrl = (project.findProperty('siteUrl') ?: 'https://example.netlify.app').toString().replaceAll('/+$', '') + '/'
-def siteHost = new URI(siteUrl).host.toLowerCase()
 
 android {
     namespace 'it.ferrite.player'
@@ -11,14 +8,17 @@ android {
 
     defaultConfig {
         applicationId 'it.ferrite.player'
-        minSdk 21
+        minSdk 23
         targetSdk 34
         versionCode((project.findProperty('versionCode') ?: '1').toString().toInteger())
-        versionName '1.0'
-        manifestPlaceholders = [hostName: siteHost, defaultUrl: siteUrl]
-        resValue 'string', 'app_name', 'Ferrite'
-        resValue 'string', 'assetStatements',
-            '[{ \\"relation\\": [\\"delegate_permission/common.handle_all_urls\\"], \\"target\\": {\\"namespace\\": \\"web\\", \\"site\\": \\"https://' + siteHost + '\\"}}]'
+        versionName '2.0'
+    }
+
+    sourceSets {
+        main {
+            // index.html, icone e manifest arrivano direttamente da web/ (generata da build-web.sh)
+            assets.srcDirs = ['src/main/assets', '../../web']
+        }
     }
 
     signingConfigs {
@@ -46,8 +46,4 @@ android {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
-}
-
-dependencies {
-    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
 }

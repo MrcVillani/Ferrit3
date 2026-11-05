@@ -70,9 +70,11 @@ jobs:
           fi
           echo "::add-mask::$P"
           echo "FERRITE_KS_PASS=$P" >> "$GITHUB_ENV"
+      - name: Prepara l'interfaccia
+        run: ./build-web.sh
       - name: Compila APK
         working-directory: android
-        run: gradle assembleRelease --stacktrace -PsiteUrl="$SITE_URL" -PversionCode="${{ github.run_number }}"
+        run: gradle assembleRelease --stacktrace -PversionCode="${{ github.run_number }}"
       - name: Rinomina
         run: cp android/app/build/outputs/apk/release/app-release.apk "Ferrite-${{ github.run_number }}.apk"
       - uses: actions/upload-artifact@v4
@@ -126,7 +128,7 @@ jobs:
           name: Ferrite build ${{ github.run_number }}
           make_latest: 'true'
           body: |
-            **Android**: scarica `Ferrite-${{ github.run_number }}.apk` dal telefono e installalo.
+            **Android**: scarica `Ferrite-${{ github.run_number }}.apk` dal telefono e installalo sopra la versione precedente. Comanda Spotify (o qualsiasi player) tramite i controlli multimediali di Android: al primo avvio consenti l'accesso alle notifiche dalla finestra Collegamento.
             **Windows**: `Ferrite Setup ….exe` (installer) oppure `Ferrite-…-portable.exe`.
             **Linux**: `.AppImage` · **macOS**: `.dmg` (primo avvio: tasto destro → Apri).
 

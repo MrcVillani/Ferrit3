@@ -8,6 +8,6 @@ cd "$(dirname "$0")"
   printf '<link rel="manifest" href="manifest.webmanifest">\n<meta name="theme-color" content="#14202b">\n'
   printf '<link rel="icon" href="icons/icon-192.png">\n<link rel="apple-touch-icon" href="icons/icon-192.png">\n'
   cat src/ferrite-player.html
-  printf '\n<script>if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(function(){});</script>\n</html>\n'
+  printf '\n<script>if ("serviceWorker" in navigator && location.protocol === "https:" && !window.FerriteAndroid) navigator.serviceWorker.register("sw.js").catch(function(){});</script>\n</html>\n'
 } > web/index.html
 echo "web/index.html aggiornato"
