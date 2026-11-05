@@ -99,7 +99,6 @@ jobs:
         working-directory: desktop
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run dist
       - uses: actions/upload-artifact@v4
         with:
