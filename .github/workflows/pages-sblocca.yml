@@ -24,5 +24,14 @@ jobs:
           gh api "repos/${{ github.repository }}/pages/deployments/$STUCK" || true
           echo "--- stato del sito"
           gh api "repos/${{ github.repository }}/pages" || true
+          echo "--- nuova build richiesta"
+          gh api -X POST "repos/${{ github.repository }}/pages/builds" || true
+          for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
+            sleep 15
+            st=$(gh api "repos/${{ github.repository }}/pages/builds/latest" --jq '.status + " " + (.error.message // "")' || true)
+            echo "build: $st"
+            case "$st" in built*|errored*) break;; esac
+          done
+          gh api "repos/${{ github.repository }}/pages" --jq '.status' || true
           echo "--- ultime build"
           gh api "repos/${{ github.repository }}/pages/builds?per_page=5" --jq '.[] | "\(.commit) \(.status) \(.error.message // "")"' || true
