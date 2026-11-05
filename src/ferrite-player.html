@@ -201,6 +201,22 @@ input[type=range]::-moz-range-thumb{width:22px;height:10px;border:1px solid var(
 .pl-list li.note button{margin-top:8px}
 .pl-foot{display:flex;justify-content:space-between;gap:8px;margin-top:6px;font:13px/1 var(--font-lcd);color:var(--label);flex-wrap:wrap}
 
+/* ---------- raccolta (solo app Android) ---------- */
+.np{display:grid;grid-template-columns:76px minmax(0,1fr);gap:10px;align-items:center}
+.np-art{width:76px;height:76px;border:1px solid var(--edge);border-radius:var(--r-btn);background:var(--lcd-bg);object-fit:cover;display:block;box-shadow:inset 0 2px 6px rgba(0,0,0,.5)}
+.np-meta{min-width:0;display:flex;flex-direction:column;gap:3px;font:13px/1.3 var(--font-lcd);color:var(--label)}
+.np-meta b{font:600 14px/1.25 var(--font-text);color:var(--label);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.np-meta span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.acts:empty{display:none}
+.sp-list{height:auto;max-height:260px;min-height:60px}
+.sp-list li{grid-template-columns:34px minmax(0,1fr) auto;align-items:center;padding:3px 6px}
+.sp-list img,.sp-list .ph{width:34px;height:34px;border-radius:2px;object-fit:cover;background:var(--lcd-dim);display:block}
+.sp-list .k{display:block;font-size:11px;opacity:.65;text-transform:uppercase;letter-spacing:.06em}
+.sp-list .x{width:26px;height:22px;padding:0;font-size:11px}
+.sp-form{display:flex;gap:6px}
+.sp-form .field{flex:1}
+
 /* ---------- analizzatore ---------- */
 .screen{background:var(--lcd-bg);border:1px solid var(--edge);border-radius:var(--r-btn);box-shadow:inset 0 2px 7px rgba(0,0,0,.55);padding:6px}
 #vis{display:block;width:100%;height:150px;cursor:pointer}
@@ -296,6 +312,32 @@ input[type=range]::-moz-range-thumb{width:22px;height:10px;border:1px solid var(
         </div>
         <label class="vol" for="vol">VOL <input type="range" id="vol" min="0" max="100" value="70"><output id="vol-out">70</output></label>
       </div>
+    </div>
+  </section>
+
+  <!-- RACCOLTA (solo app Android) -->
+  <section class="win" id="w-sp" data-win="sp" aria-label="Raccolta" hidden>
+    <header class="tb"><span class="grip short"></span><span>Raccolta</span><span class="grip"></span>
+      <button class="bevel tbb" id="sh-sp" data-shade aria-label="Riduci a barra" title="Riduci a barra"><svg viewBox="0 0 10 10"><path d="M1 7h8v2H1z"/></svg></button>
+    </header>
+    <div class="wbody sect">
+      <div class="np">
+        <img class="np-art" id="np-art" alt="Copertina" hidden>
+        <div class="np-art" id="np-noart"></div>
+        <div class="np-meta"><b id="np-title">Nessun brano</b><span id="np-artist"></span><span id="np-album"></span></div>
+      </div>
+      <div class="acts" id="sp-acts"></div>
+      <form class="sp-form" id="sp-search">
+        <input class="field" id="sp-q" type="search" placeholder="Cerca e riproduci: artista, brano, album…" enterkeyhint="search" autocomplete="off">
+        <button class="bevel pbtn" type="submit">Vai</button>
+      </form>
+      <span class="lbl">Salvati</span>
+      <ul class="pl-list sp-list" id="sp-list" aria-label="Playlist e album salvati"></ul>
+      <form class="sp-form" id="sp-add">
+        <input class="field" id="sp-link" placeholder="Incolla un link Spotify" autocomplete="off" inputmode="url">
+        <button class="bevel pbtn" type="submit">Aggiungi</button>
+      </form>
+      <div class="foot"><span>In Spotify: Condividi → Ferrite per salvare una playlist, un album o un artista</span></div>
     </div>
   </section>
 
@@ -460,6 +502,7 @@ function defaultLayout() {
   place(v, x2, 0);
   if (dw >= x2 + v.offsetWidth + gap + s.offsetWidth) place(s, x2 + v.offsetWidth + gap, 0);
   else place(s, x2, v.offsetHeight + gap);
+  const r = W('sp'); if (r && !r.hidden) place(r, 0, p.offsetTop + p.offsetHeight + gap);
 }
 function saveLayout() {
   if (!isWide() || isMini()) return;
@@ -1004,7 +1047,7 @@ function syncNative() {
     S.playing = !!st.playing;
   } else if (S.track) { S.track = null; S.playing = false; S.pos = 0; onTrackChange(); }
   if (!volDrag && typeof st.vol === 'number') S.vol = st.vol;
-  renderVol(); renderInfo();
+  renderVol(); renderInfo(); renderNowPlaying();
   if (!prev || prev.access !== st.access || prev.app !== st.app || prev.audioPerm !== st.audioPerm || prev.visual !== st.visual) renderPanel();
 }
 function loadQueue() {
@@ -1035,6 +1078,7 @@ const Native = {
   load() {
     S.mode = 'native'; S.src = 'native'; S.track = null; S.playing = false; S.pos = 0;
     plSelect.textContent = ''; addOpt('native', 'Coda del player'); plSelect.disabled = true;
+    W('sp').hidden = false; renderLinks(); window.ferriteShared();
     S.tracks = []; S.listNote = 'Caricamento…'; renderList();
     syncNative(); loadQueue();
     setInterval(() => { if (!document.hidden) syncNative(); }, 500);
@@ -1053,6 +1097,110 @@ const Native = {
   setRepeat() { nativeCustom('repeat', 'Ripeti'); },
   ended() {}
 };
+/* raccolta: copertina, azioni, ricerca, link salvati */
+const KINDS = { playlist: 'Playlist', album: 'Album', artist: 'Artista', track: 'Brano', episode: 'Episodio', show: 'Podcast' };
+let links = store.get('links', []);
+let artFor = '', actsKey = '';
+function parseSpotify(text) {
+  const m = String(text).match(/open\.spotify\.com\/(?:intl-[a-zA-Z-]+\/)?(playlist|album|artist|track|episode|show)\/([A-Za-z0-9]+)/)
+    || String(text).match(/spotify:(playlist|album|artist|track|episode|show):([A-Za-z0-9]+)/);
+  return m ? { kind: m[1], uri: 'spotify:' + m[1] + ':' + m[2], url: 'https://open.spotify.com/' + m[1] + '/' + m[2] } : null;
+}
+function firstUrl(text) { const m = String(text).match(/https?:\/\/\S+/); return m ? m[0].replace(/[).,]+$/, '') : ''; }
+function saveLinks() { store.set('links', links); renderLinks(); }
+function addLink(text, subject) {
+  const parsed = parseSpotify(text);
+  const raw = firstUrl(text);
+  if (!parsed && !/spotify/i.test(raw)) { flash('Non sembra un link Spotify'); return; }
+  const id = 'l' + Date.now().toString(36);
+  const title = (subject || '').replace(/\s*(\||-)\s*Spotify\s*$/i, '').trim();
+  if (parsed && links.some(l => l.uri === parsed.uri)) { flash('Già nella raccolta'); return; }
+  links.unshift({ id, uri: parsed ? parsed.uri : '', url: parsed ? parsed.url : raw, kind: parsed ? parsed.kind : '', title, thumb: '', pending: true });
+  saveLinks();
+  flash('Aggiunto alla raccolta');
+  try { NATIVE.fetchMeta(parsed ? parsed.url : raw, id); } catch (e) {}
+}
+window.ferriteMeta = json => {
+  let r; try { r = JSON.parse(json); } catch (e) { return; }
+  const l = links.find(x => x.id === r.id); if (!l) return;
+  l.pending = false;
+  if (r.url) { const p = parseSpotify(r.url); if (p) { l.uri = p.uri; l.url = p.url; l.kind = p.kind; } }
+  if (r.title) l.title = r.title;
+  if (r.thumb) l.thumb = r.thumb;
+  if (!l.uri) { links = links.filter(x => x !== l); flash('Link Spotify non riconosciuto'); }
+  else if (links.some(x => x !== l && x.uri === l.uri)) { links = links.filter(x => x !== l); flash('Già nella raccolta'); }
+  saveLinks();
+};
+window.ferriteShared = () => {
+  let s = ''; try { s = NATIVE.takeShared(); } catch (e) {}
+  if (!s) return;
+  try { const o = JSON.parse(s); addLink(o.text, o.subject); } catch (e) {}
+  const w = W('sp'); toggleShade(w, false); focusWin(w);
+};
+function renderLinks() {
+  const ul = $('#sp-list'); ul.textContent = '';
+  if (!links.length) {
+    const li = document.createElement('li'); li.className = 'note';
+    li.textContent = 'Ancora niente. In Spotify apri una playlist o un album, tocca Condividi e scegli Ferrite.';
+    ul.appendChild(li); return;
+  }
+  links.forEach(l => {
+    const li = document.createElement('li'); li.dataset.id = l.id; li.tabIndex = 0;
+    let img;
+    if (l.thumb) { img = document.createElement('img'); img.src = l.thumb; img.alt = ''; img.loading = 'lazy'; }
+    else { img = document.createElement('span'); img.className = 'ph'; }
+    const t = document.createElement('span'); t.className = 't';
+    const k = document.createElement('span'); k.className = 'k'; k.textContent = l.pending ? 'Recupero…' : (KINDS[l.kind] || 'Spotify');
+    t.append(k, document.createTextNode(l.title || KINDS[l.kind] || l.url));
+    const x = document.createElement('button'); x.className = 'bevel tbtn x'; x.type = 'button'; x.textContent = '✕'; x.setAttribute('aria-label', 'Rimuovi');
+    li.append(img, t, x);
+    ul.appendChild(li);
+  });
+}
+$('#sp-list').addEventListener('click', e => {
+  const li = e.target.closest('li[data-id]'); if (!li) return;
+  const l = links.find(x => x.id === li.dataset.id); if (!l) return;
+  if (e.target.closest('.x')) { links = links.filter(x => x !== l); saveLinks(); return; }
+  if (!l.uri) { flash('Link non ancora pronto'); return; }
+  nat('playUri', l.uri); flash('Avvio: ' + (l.title || KINDS[l.kind]));
+});
+$('#sp-list').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.closest('li[data-id]')) e.target.click(); });
+$('#sp-search').addEventListener('submit', e => {
+  e.preventDefault();
+  const q = $('#sp-q').value.trim(); if (!q) return;
+  nat('search', q); flash('Cerco "' + q + '" su Spotify'); $('#sp-q').blur();
+});
+$('#sp-add').addEventListener('submit', e => {
+  e.preventDefault();
+  const v = $('#sp-link').value.trim(); if (!v) return;
+  addLink(v, ''); $('#sp-link').value = '';
+});
+function renderNowPlaying() {
+  const n = S.nat || {};
+  $('#np-title').textContent = n.title || (n.access ? 'Nessun brano' : 'Accesso alle notifiche da attivare');
+  $('#np-artist').textContent = n.artist || '';
+  $('#np-album').textContent = n.album || '';
+  const key = (n.pkg || '') + '|' + (n.title || '') + '|' + (n.album || '');
+  if (key !== artFor || $('#np-art').hidden) {
+    let a = ''; try { a = n.title ? NATIVE.getArt() : ''; } catch (e) {}
+    if (a) { $('#np-art').src = a; artFor = key; }
+    $('#np-art').hidden = !a; $('#np-noart').hidden = !!a;
+  }
+  const acts = (n.actions || []);
+  const ak = acts.join(';');
+  if (ak !== actsKey) {
+    actsKey = ak;
+    const box = $('#sp-acts'); box.textContent = '';
+    acts.forEach(a => {
+      const [id, name] = a.split('|');
+      const b = document.createElement('button'); b.className = 'bevel chip'; b.type = 'button';
+      b.textContent = name || id.split('.').pop();
+      b.addEventListener('click', () => { nat('custom', id); flash(b.textContent); });
+      box.appendChild(b);
+    });
+  }
+}
+
 $('#b-notif').addEventListener('click', () => nat('notifSettings'));
 $('#b-appset').addEventListener('click', () => nat('appSettings'));
 $('#b-audio').addEventListener('click', () => nat('audioPerm'));

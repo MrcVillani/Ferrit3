@@ -48,6 +48,7 @@ public class MainActivity extends Activity {
         s.setMediaPlaybackRequiresUserGesture(true);
 
         bridge = new MediaBridge(this);
+        bridge.attach(web);
         web.addJavascriptInterface(bridge, "FerriteAndroid");
 
         web.setWebViewClient(new WebViewClient() {
@@ -81,6 +82,23 @@ public class MainActivity extends Activity {
 
         if (state != null) web.restoreState(state);
         if (web.getUrl() == null) web.loadUrl("https://" + HOST + "/index.html");
+        handleShare(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleShare(intent);
+    }
+
+    /** Spotify → Condividi → Ferrite: passa il link alla pagina, che lo aggiunge alla Raccolta. */
+    private void handleShare(Intent intent) {
+        if (intent == null || !Intent.ACTION_SEND.equals(intent.getAction())) return;
+        String text = intent.getStringExtra(Intent.EXTRA_TEXT);
+        if (text == null) return;
+        bridge.share(text, intent.getStringExtra(Intent.EXTRA_SUBJECT));
+        intent.setAction(Intent.ACTION_MAIN);
     }
 
     static String mimeFor(String path) {
